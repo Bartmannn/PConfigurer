@@ -1,27 +1,35 @@
 import { useEffect, useState } from "react";
 
-function RAMList() {
-    const [rams, setRams] = useState([]);
+function RAMList({ selected, onChange }) {
+  const [rams, setRams] = useState([]);
 
-    useEffect(() => {
-        fetch("http://localhost:8000/api/rams/")
-            .then((res) => res.json())
-            .then((data) => setRams(data));
-    }, []);
+  useEffect(() => {
+    let url = "http://localhost:8000/api/rams/";
+    const params = [];
+    if (selected.mobo) params.push(`mobo=${selected.mobo}`);
+    if (selected.cpu) params.push(`cpu=${selected.cpu}`);
+    if (params.length) url += "?" + params.join("&");
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => setRams(data));
+  }, [selected.mobo, selected.cpu]);
 
-    return (
-        <div>
-            <h2>Available RAMs</h2>
-            <ul>
-                {rams.map((ram) => (
-                    <li key={ram.id}>
-                        {ram.name}
-                    </li>
-                ))}
-            </ul>
-        </div>
-    );
-
+  return (
+    <div>
+      <label>RAM: </label>
+      <select
+        value={selected.ram || ""}
+        onChange={(e) => onChange(parseInt(e.target.value))}
+      >
+        <option value="">-- Select RAM --</option>
+        {rams.map((ram) => (
+          <option key={ram.id} value={ram.id}>
+            {ram.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
 }
 
 export default RAMList;
