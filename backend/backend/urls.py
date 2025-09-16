@@ -18,10 +18,21 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from core.views import CPUViewSet, GPUViewSet, BuildViewSet
+from core.views import (
+    CPUViewSet, GPUViewSet, MotherboardViewSet, RAMViewSet, StorageViewSet,
+    PSUViewSet, CaseViewSet, CoolerViewSet, BuildViewSet, ManufacturerViewSet
+)
 
 router = DefaultRouter()
+router.register(r'manufacturers', ManufacturerViewSet)
 router.register(r'cpus', CPUViewSet)
 router.register(r'gpus', GPUViewSet)
+router.register(r'motherboards', MotherboardViewSet)
+router.register(r'rams', RAMViewSet)
+router.register(r'storage', StorageViewSet)
+router.register(r'psus', PSUViewSet)
+router.register(r'cases', CaseViewSet)
+router.register(r'coolers', CoolerViewSet)
 router.register(r'builds', BuildViewSet)
 
 urlpatterns = [

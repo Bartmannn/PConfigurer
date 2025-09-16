@@ -21,11 +21,16 @@ Backend oparty na **Django** + **Django REST Framework**, frontend planowany w *
 
 ---
 
+## Dane
+Dane o podzespołach zostały zaczerpnięte z repozytorium https://github.com/docyx/pc-part-dataset.git
+
+---
+
 ## Instalacja i uruchomienie
 
 ### 1. Klonowanie repozytorium
 ```bash
-git clone https://github.com/<twoje-repo>/pc-configurator.git
+git clone https://github.com/Bartmannn/PConfigurer.git
 cd pc-configurator
 ```
 
