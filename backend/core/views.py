@@ -9,6 +9,9 @@ from .serializer import (
     RAMSerializer, StorageSerializer, PSUSerializer, CaseSerializer,
     CoolerSerializer, BuildSerializer, BuildDetailSerializer
 )
+from core.services.motherboard_service import MotherboardService
+from core.services.cpu_service import CPUService
+from core.services.ram_service import RAMService
 
 # --- Bazowy ViewSet z wyszukiwaniem i sortowaniem ---
 class BaseViewSet(viewsets.ModelViewSet):
@@ -28,24 +31,14 @@ class ManufacturerViewSet(BaseViewSet):
 class CPUViewSet(BaseViewSet):
     queryset = CPU.objects.all().order_by("id")
     serializer_class = CPUSerializer
-    search_fields = ["name", "manufacturer__name", "socket"]
-    ordering_fields = ["cores", "threads", "base_clock_ghz", "boost_clock_ghz", "tdp_w", "id"]
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        socket = self.request.query_params.get("socket")
-        manufacturer = self.request.query_params.get("manufacturer")
-        min_cores = self.request.query_params.get("min_cores")
-        min_threads = self.request.query_params.get("min_threads")
-
-        if socket:
-            qs = qs.filter(socket__iexact=socket)
-        if manufacturer:
-            qs = qs.filter(manufacturer__name__icontains=manufacturer)
-        if min_cores:
-            qs = qs.filter(cores__gte=min_cores)
-        if min_threads:
-            qs = qs.filter(threads__gte=min_threads)
+        params = {
+            k: int(v) \
+                for k, v in self.request.query_params.items()
+        }
+        qs = CPUService.get_compatible_cpus(params)
+        
         return qs
 
 
@@ -71,23 +64,14 @@ class GPUViewSet(BaseViewSet):
 class MotherboardViewSet(BaseViewSet):
     queryset = Motherboard.objects.all().order_by("id")
     serializer_class = MotherboardSerializer
-    search_fields = ["name", "manufacturer__name", "chipset", "socket"]
-    ordering_fields = ["ram_slots", "ram_max_mhz", "id"]
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        socket = self.request.query_params.get("socket")
-        ram_type = self.request.query_params.get("ram_type")
-        form_factor = self.request.query_params.get("form_factor")
-        pcie_version = self.request.query_params.get("pcie_version")
-        if socket:
-            qs = qs.filter(socket__iexact=socket)
-        if ram_type:
-            qs = qs.filter(ram_type__iexact=ram_type)
-        if form_factor:
-            qs = qs.filter(form_factor__iexact=form_factor)
-        if pcie_version:
-            qs = qs.filter(pcie_version__startswith=pcie_version)
+        params = {
+            k: int(v) \
+                for k, v in self.request.query_params.items()
+        }
+        qs = MotherboardService.get_compatible_motherboards(params)
+
         return qs
 
 
@@ -95,20 +79,13 @@ class MotherboardViewSet(BaseViewSet):
 class RAMViewSet(BaseViewSet):
     queryset = RAM.objects.all().order_by("id")
     serializer_class = RAMSerializer
-    search_fields = ["name", "manufacturer__name", "ram_type"]
-    ordering_fields = ["capacity_gb", "sticks", "speed_mhz", "id"]
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        ram_type = self.request.query_params.get("ram_type")
-        min_capacity = self.request.query_params.get("min_capacity")
-        sticks = self.request.query_params.get("sticks")
-        if ram_type:
-            qs = qs.filter(ram_type__iexact=ram_type)
-        if min_capacity:
-            qs = qs.filter(capacity_gb__gte=min_capacity)
-        if sticks:
-            qs = qs.filter(sticks=sticks)
+        params = {
+            k: int(v) \
+                for k, v in self.request.query_params.items()
+        }
+        qs = RAMService.get_compatible_rams(params)
         return qs
 
 
@@ -214,3 +191,4 @@ class BuildViewSet(BaseViewSet):
         if user_id:
             qs = qs.filter(user_id=user_id)
         return qs
+
