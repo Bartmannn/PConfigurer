@@ -1,4 +1,4 @@
-from core.models import Motherboard, CPU, RAM
+from core.models import Motherboard, CPU, RAM, MotherboardConnector, GPU
 
 
 class MotherboardService:
@@ -39,3 +39,34 @@ class MotherboardService:
             print(f"\nCMP MOBO ram: {qs}\n\n\n")
 
         return qs
+    
+    @staticmethod
+    def get_compatible_gpus(mobo: Motherboard, allow_backward=True):
+        # pobierz maksymalne wartości PCIe z mobo
+        mobo_slot = (
+            MotherboardConnector.objects
+            .filter(motherboard=mobo, connector__category="PCIe")
+            .order_by("-connector__lanes", "-connector__version")
+            .values("connector__lanes", "connector__version")
+            .first()
+        )
+
+        if not mobo_slot:
+            return GPU.objects.none()
+
+        lanes = mobo_slot["connector__lanes"]
+        version = mobo_slot["connector__version"]
+
+        qs = GPU.objects.filter(
+            gpuconnector__connector__category="PCIe",
+            gpuconnector__connector__lanes__lte=lanes
+        )
+
+        if allow_backward:
+            # GPU 4.0 pasuje do 3.0 (wolniej)
+            qs = qs.filter(gpuconnector__connector__version__lte=version)
+        else:
+            # tylko pełna zgodność lub nowsze
+            qs = qs.filter(gpuconnector__connector__version=version)
+
+        return qs.distinct()

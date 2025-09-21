@@ -61,15 +61,6 @@ class CPU(models.Model):
         return f"{self.name} {self.base_clock_ghz}GHz"
 
 
-class GPU(models.Model):
-    manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
-    name = models.CharField(max_length=120)
-    vram_gb = models.PositiveIntegerField()
-
-    def __str__(self):
-        return self.name
-
-
 class Storage(models.Model):
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     name = models.CharField(max_length=120)
@@ -91,15 +82,65 @@ class PSU(models.Model):
         return f"{self.name} {self.wattage_w}W"
 
 
-class Case(models.Model):
+class Connector(models.Model):
+     # TODO: pozostałe złączki
+    category = models.CharField(max_length=8, choices=[
+        ("PCIe", "PCIe"),
+        ("M.2 PCIe", "M.2 PCIe"),
+        ("M.2 SATA", "M.2 SATA"),
+        ("SATA", "SATA"),
+        ("USB", "USB"),
+        ("Fan", "Fan"),
+        ("Power", "Power"),
+        ("Audio", "Audio"),
+    ])
+    version = models.DecimalField(max_digits=2, decimal_places=1, null=True, blank=True)
+    lanes = models.PositiveSmallIntegerField(null=True, blank=True)
+    speed = models.CharField(max_length=8, null=True, blank=True)
+    extra = models.CharField(max_length=16, null=True, blank=True)
+
+    def __str__(self):
+        match self.category:
+            case "PCIe":
+                return f"{self.category} {self.version} x{self.lanes}"
+            case "M.2 PCIe":
+                support_SATA = " / SATA" if self.extra else ""
+                return f"{self.category} NVMe {self.version} {self.lanes}{support_SATA}"
+            case "M.2 SATA":
+                return f"{self.category}"
+            case "SATA":
+                rome_digit = 'I'*int(self.version)
+                return f"{self.category} {rome_digit} ({self.speed}Gb/s)"
+            case "USB":
+                return f"{self.category} {self.version}"
+            case "Fan":
+                raise NotImplemented("Sprawdź to")
+            case "Power":
+                return f"{self.category} {self.lanes} pin"
+            case "Audio":
+                raise NotImplemented("Sprawdź to")
+
+
+class GPU(models.Model):
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     name = models.CharField(max_length=120)
-    form_factor_support = models.CharField(max_length=64)  # ATX,mATX,ITX
-    max_gpu_length_mm = models.PositiveIntegerField()
-    max_cooler_height_mm = models.PositiveIntegerField()
+    vram_type = models.CharField()
+    vram_capacity = models.PositiveIntegerField()
+    length_mm = models.PositiveSmallIntegerField()
+    width_mm = models.PositiveSmallIntegerField()
+    height_mm = models.PositiveSmallIntegerField()
+    
+    # PCIe, HDMI, DisplayPort, PSU
+    connectors = models.ManyToManyField(Connector, through="GPUConnector")
 
     def __str__(self):
         return self.name
+
+
+class GPUConnector(models.Model):
+    gpu = models.ForeignKey(GPU, on_delete=models.CASCADE)
+    connector = models.ForeignKey(Connector, on_delete=models.CASCADE)
+    quantity = models.PositiveSmallIntegerField(default=1)
 
 
 class Cooler(models.Model):
@@ -111,25 +152,32 @@ class Cooler(models.Model):
 
     def __str__(self):
         return self.name
+    
+    
+class FormFactor(models.Model):
+    name = models.CharField(max_length=5, unique=True)
+    
+    def __str__(self):
+        return self.name
+
+    
+class Case(models.Model):
+    manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
+    name = models.CharField(max_length=120)
+    form_factor_support = models.ManyToManyField(FormFactor)
+    max_gpu_length_mm = models.PositiveIntegerField()
+    max_cooler_height_mm = models.PositiveIntegerField()
+
+    def __str__(self):
+        return self.name
 
 
 class Motherboard(models.Model):
-    #TODO: zasilanie (piny), format płyty, chipsety, osobny model dla form_factor'a?
-    
-    # motherboard itself
+    #TODO: zasilanie (piny), chipsety, osobny model dla form_factor'a?
     name = models.CharField(max_length=128)
-    
-    # manufacturer
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
-    
-    # cpu
     socket = models.ForeignKey(Socket, on_delete=models.PROTECT)
-    
-    # Obudowa
-    form_factor = models.CharField(max_length=5, choices=[
-        ("E-ATX", "E-ATX"), ("mITX", "mITX"), ("mATX", "mATX"),
-        ("uATX", "uATX"), ("ATX", "ATX"), ("CEB", "CEB"),
-    ])
+    form_factor = models.ForeignKey(FormFactor, on_delete=models.CASCADE)
     
     # RAM
     supported_ram = models.ManyToManyField(RAMBase)
@@ -139,11 +187,17 @@ class Motherboard(models.Model):
     ])
     dimm_slots = models.PositiveSmallIntegerField(choices=[(2, "2 x DIMM"), (4, "4 x DIMM")])
     
-    # GPU
-    pcie_version = models.CharField(max_length=8, default="4.0")
+    # GPU, Dyski, Chłodzenie, Zasilanie, itp.
+    connectors = models.ManyToManyField(Connector, through="MotherboardConnector")
 
     def __str__(self):
         return self.name
+
+
+class MotherboardConnector(models.Model):
+    motherboard = models.ForeignKey(Motherboard, on_delete=models.CASCADE)
+    connector = models.ForeignKey(Connector, on_delete=models.CASCADE)
+    quantity = models.PositiveSmallIntegerField(default=1)
 
 
 class Build(models.Model):

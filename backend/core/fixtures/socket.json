@@ -1,0 +1,65 @@
+[
+    {
+        "model": "core.socket",
+        "pk": 1,
+        "fields": {
+            "name": "1700"
+        }
+    },
+    {
+        "model": "core.socket",
+        "pk": 2,
+        "fields": {
+            "name": "AM4"
+        }
+    },
+    {
+        "model": "core.socket",
+        "pk": 3,
+        "fields": {
+            "name": "1200"
+        }
+    },
+    {
+        "model": "core.socket",
+        "pk": 4,
+        "fields": {
+            "name": "AM5"
+        }
+    },
+    {
+        "model": "core.socket",
+        "pk": 5,
+        "fields": {
+            "name": "sTR5"
+        }
+    },
+    {
+        "model": "core.socket",
+        "pk": 6,
+        "fields": {
+            "name": "1851"
+        }
+    },
+    {
+        "model": "core.socket",
+        "pk": 7,
+        "fields": {
+            "name": "2066"
+        }
+    },
+    {
+        "model": "core.socket",
+        "pk": 8,
+        "fields": {
+            "name": "sTRX4"
+        }
+    },
+    {
+        "model": "core.socket",
+        "pk": 9,
+        "fields": {
+            "name": "sWRX8"
+        }
+    }
+]

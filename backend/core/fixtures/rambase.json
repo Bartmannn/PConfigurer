@@ -1,0 +1,258 @@
+[
+    {
+        "model": "core.rambase",
+        "pk": 1,
+        "fields": {
+            "type": "DDR4",
+            "mts": 2133
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 2,
+        "fields": {
+            "type": "DDR4",
+            "mts": 2400
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 3,
+        "fields": {
+            "type": "DDR4",
+            "mts": 2666
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 4,
+        "fields": {
+            "type": "DDR4",
+            "mts": 2933
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 5,
+        "fields": {
+            "type": "DDR4",
+            "mts": 3000
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 6,
+        "fields": {
+            "type": "DDR4",
+            "mts": 3200
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 7,
+        "fields": {
+            "type": "DDR4",
+            "mts": 3600
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 8,
+        "fields": {
+            "type": "DDR4",
+            "mts": 3733
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 9,
+        "fields": {
+            "type": "DDR4",
+            "mts": 4000
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 10,
+        "fields": {
+            "type": "DDR4",
+            "mts": 5600
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 11,
+        "fields": {
+            "type": "DDR4",
+            "mts": 6400
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 12,
+        "fields": {
+            "type": "DDR5",
+            "mts": 4800
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 13,
+        "fields": {
+            "type": "DDR5",
+            "mts": 5200
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 14,
+        "fields": {
+            "type": "DDR5",
+            "mts": 5600
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 15,
+        "fields": {
+            "type": "DDR5",
+            "mts": 6000
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 16,
+        "fields": {
+            "type": "DDR5",
+            "mts": 6200
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 17,
+        "fields": {
+            "type": "DDR5",
+            "mts": 6400
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 18,
+        "fields": {
+            "type": "DDR5",
+            "mts": 6600
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 19,
+        "fields": {
+            "type": "DDR5",
+            "mts": 6800
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 20,
+        "fields": {
+            "type": "DDR5",
+            "mts": 7000
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 21,
+        "fields": {
+            "type": "DDR5",
+            "mts": 7200
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 22,
+        "fields": {
+            "type": "DDR5",
+            "mts": 7400
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 23,
+        "fields": {
+            "type": "DDR5",
+            "mts": 7600
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 24,
+        "fields": {
+            "type": "DDR5",
+            "mts": 7800
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 25,
+        "fields": {
+            "type": "DDR5",
+            "mts": 8000
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 26,
+        "fields": {
+            "type": "DDR5",
+            "mts": 8200
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 27,
+        "fields": {
+            "type": "DDR5",
+            "mts": 8400
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 28,
+        "fields": {
+            "type": "DDR5",
+            "mts": 8800
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 29,
+        "fields": {
+            "type": "DDR3",
+            "mts": 1333
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 30,
+        "fields": {
+            "type": "DDR3",
+            "mts": 1600
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 31,
+        "fields": {
+            "type": "DDR3",
+            "mts": 1866
+        }
+    },
+    {
+        "model": "core.rambase",
+        "pk": 32,
+        "fields": {
+            "type": "DDR3",
+            "mts": 2400
+        }
+    }
+]

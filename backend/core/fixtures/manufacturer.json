@@ -1,0 +1,520 @@
+[
+    {
+        "model": "core.manufacturer",
+        "pk": 1,
+        "fields": {
+            "name": "AMD"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 2,
+        "fields": {
+            "name": "Intel"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 3,
+        "fields": {
+            "name": "Nvidia"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 4,
+        "fields": {
+            "name": "MSI"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 5,
+        "fields": {
+            "name": "Patriot"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 6,
+        "fields": {
+            "name": "GOODRAM"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 7,
+        "fields": {
+            "name": "G.SKILL"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 8,
+        "fields": {
+            "name": "Apacer"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 9,
+        "fields": {
+            "name": "Kingston"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 10,
+        "fields": {
+            "name": "PNY"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 11,
+        "fields": {
+            "name": "Corsair"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 12,
+        "fields": {
+            "name": "Kingston FURY"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 13,
+        "fields": {
+            "name": "Silicon Power"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 14,
+        "fields": {
+            "name": "Lexar"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 15,
+        "fields": {
+            "name": "ADATA"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 16,
+        "fields": {
+            "name": "Crucial"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 17,
+        "fields": {
+            "name": "Dell"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 18,
+        "fields": {
+            "name": "Synology"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 19,
+        "fields": {
+            "name": "Thermaltake"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 20,
+        "fields": {
+            "name": "Team Group"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 21,
+        "fields": {
+            "name": "Gigabyte"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 22,
+        "fields": {
+            "name": "ASUS"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 23,
+        "fields": {
+            "name": "INNO3D"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 24,
+        "fields": {
+            "name": "Zotac"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 25,
+        "fields": {
+            "name": "Palit"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 26,
+        "fields": {
+            "name": "Gainward"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 27,
+        "fields": {
+            "name": "XFX"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 28,
+        "fields": {
+            "name": "ASRock"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 29,
+        "fields": {
+            "name": "PowerColor"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 30,
+        "fields": {
+            "name": "Sapphire"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 31,
+        "fields": {
+            "name": "KFA2"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 32,
+        "fields": {
+            "name": "Acer"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 33,
+        "fields": {
+            "name": "NZXT"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 34,
+        "fields": {
+            "name": "EVGA"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 35,
+        "fields": {
+            "name": "be quiet!"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 36,
+        "fields": {
+            "name": "Chieftec"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 37,
+        "fields": {
+            "name": "Cooler Master"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 38,
+        "fields": {
+            "name": "Seasonic"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 39,
+        "fields": {
+            "name": "Deepcool"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 40,
+        "fields": {
+            "name": "XPG"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 41,
+        "fields": {
+            "name": "ENDORFY"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 42,
+        "fields": {
+            "name": "Cougar"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 43,
+        "fields": {
+            "name": "Redragon"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 44,
+        "fields": {
+            "name": "Fractal Design"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 45,
+        "fields": {
+            "name": "SilverStone"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 46,
+        "fields": {
+            "name": "AeroCool"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 47,
+        "fields": {
+            "name": "XILENCE"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 48,
+        "fields": {
+            "name": "Lian Li"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 49,
+        "fields": {
+            "name": "Phanteks"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 50,
+        "fields": {
+            "name": "Sharkoon"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 51,
+        "fields": {
+            "name": "MODECOM"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 52,
+        "fields": {
+            "name": "Qoltec"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 53,
+        "fields": {
+            "name": "Evolveo"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 54,
+        "fields": {
+            "name": "LC POWER"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 55,
+        "fields": {
+            "name": "Montech"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 56,
+        "fields": {
+            "name": "Super Flower"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 57,
+        "fields": {
+            "name": "DarkFlash"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 58,
+        "fields": {
+            "name": "EuroCase"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 59,
+        "fields": {
+            "name": "IN WIN"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 60,
+        "fields": {
+            "name": "Kolink"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 61,
+        "fields": {
+            "name": "Silver Monkey X"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 62,
+        "fields": {
+            "name": "Yeyian"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 63,
+        "fields": {
+            "name": "Crono"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 64,
+        "fields": {
+            "name": "Gembird"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 65,
+        "fields": {
+            "name": "In Line"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 66,
+        "fields": {
+            "name": "Raspberry Pi"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 67,
+        "fields": {
+            "name": "Rebeltec"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 68,
+        "fields": {
+            "name": "Transcend"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 69,
+        "fields": {
+            "name": "WD"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 70,
+        "fields": {
+            "name": "Samsung"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 71,
+        "fields": {
+            "name": "Verbatim"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 72,
+        "fields": {
+            "name": "KIOXIA"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 73,
+        "fields": {
+            "name": "Seagate"
+        }
+    },
+    {
+        "model": "core.manufacturer",
+        "pk": 74,
+        "fields": {
+            "name": "Dahua"
+        }
+    }
+]

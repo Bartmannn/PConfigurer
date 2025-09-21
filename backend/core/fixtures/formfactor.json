@@ -1,0 +1,37 @@
+[
+    {
+        "model": "core.formfactor",
+        "pk": 1,
+        "fields": {
+            "name": "ATX"
+        }
+    },
+    {
+        "model": "core.formfactor",
+        "pk": 2,
+        "fields": {
+            "name": "mATX"
+        }
+    },
+    {
+        "model": "core.formfactor",
+        "pk": 3,
+        "fields": {
+            "name": "mITX"
+        }
+    },
+    {
+        "model": "core.formfactor",
+        "pk": 4,
+        "fields": {
+            "name": "E-ATX"
+        }
+    },
+    {
+        "model": "core.formfactor",
+        "pk": 5,
+        "fields": {
+            "name": "uATX"
+        }
+    }
+]
