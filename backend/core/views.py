@@ -12,6 +12,7 @@ from .serializer import (
 from core.services.motherboard_service import MotherboardService
 from core.services.cpu_service import CPUService
 from core.services.ram_service import RAMService
+from core.services.gpu_service import GPUService
 
 # --- Bazowy ViewSet z wyszukiwaniem i sortowaniem ---
 class BaseViewSet(viewsets.ModelViewSet):
@@ -23,8 +24,6 @@ class BaseViewSet(viewsets.ModelViewSet):
 class ManufacturerViewSet(BaseViewSet):
     queryset = Manufacturer.objects.all().order_by("name")
     serializer_class = ManufacturerSerializer
-    search_fields = ["name"]
-    ordering_fields = ["name", "id"]
 
 
 # --- CPU ---
@@ -46,17 +45,14 @@ class CPUViewSet(BaseViewSet):
 class GPUViewSet(BaseViewSet):
     queryset = GPU.objects.all().order_by("id")
     serializer_class = GPUSerializer
-    search_fields = ["name", "manufacturer__name"]
-    ordering_fields = ["vram_gb", "tdp_w", "length_mm", "id"]
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        min_vram = self.request.query_params.get("min_vram")
-        max_length = self.request.query_params.get("max_length")
-        if min_vram:
-            qs = qs.filter(vram_gb__gte=min_vram)
-        if max_length:
-            qs = qs.filter(length_mm__lte=max_length)
+        params = {
+            k: int(v) \
+                for k, v in self.request.query_params.items()
+        }
+        qs = GPUService.get_compatible_gpus(params)
+        
         return qs
 
 

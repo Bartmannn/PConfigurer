@@ -1,4 +1,4 @@
-from core.models import Motherboard, CPU, RAM, MotherboardConnector, GPU
+from core.models import Motherboard, CPU, RAM, MotherboardConnector, GPU, GPUConnector
 
 
 class MotherboardService:
@@ -21,27 +21,43 @@ class MotherboardService:
         
         cpu_pk = data.get("cpu")
         ram_pk = data.get("ram")
-        
-        print(f"\n\n\nCMP MOBO: {cpu_pk} | {ram_pk}")
+        gpu_pk = data.get("gpu")
         
         if cpu_pk:
             cpu = CPU.objects.get(pk=cpu_pk)
             qs = qs.filter(socket=cpu.socket)
-            print(f"\nCMP MOBO cpu: {qs}")
             
         if ram_pk:
             ram = RAM.objects.get(pk=ram_pk)
             qs = qs.filter(
                 supported_ram__in=[ram.base],
                 dimm_slots__gte=ram.modules_count,
-                max_ram_capacity__gte=ram.total_capacity
+                max_ram_capacity__gte=ram.total_capacity,
             )
-            print(f"\nCMP MOBO ram: {qs}\n\n\n")
+            
+        if gpu_pk:
+            gpu = GPU.objects.get(pk=gpu_pk)
+            gpu_conn = (
+                GPUConnector.objects
+                .filter(gpu=gpu, connector__category="PCIe")
+                .order_by("-connector__lanes", "-connector__version")
+                .first()
+            )
+            
+            if not gpu_conn:
+                raise ValueError("GPU bez PCIe!")
 
+            qs = qs.filter(
+                motherboardconnector__connector__category="PCIe",
+                motherboardconnector__connector__lanes__gte=gpu_conn.connector.lanes,
+                motherboardconnector__connector__version__gte=gpu_conn.connector.version,
+                motherboardconnector__quantity__gte=1
+            )
+            
         return qs
     
     @staticmethod
-    def get_compatible_gpus(mobo: Motherboard, allow_backward=True):
+    def get_compatible_gpus(mobo: Motherboard):
         # pobierz maksymalne wartości PCIe z mobo
         mobo_slot = (
             MotherboardConnector.objects
@@ -51,7 +67,7 @@ class MotherboardService:
             .first()
         )
 
-        if not mobo_slot:
+        if not mobo_slot: # TODO: płyta główna może nie mieć PCIe?
             return GPU.objects.none()
 
         lanes = mobo_slot["connector__lanes"]
@@ -59,14 +75,8 @@ class MotherboardService:
 
         qs = GPU.objects.filter(
             gpuconnector__connector__category="PCIe",
-            gpuconnector__connector__lanes__lte=lanes
+            gpuconnector__connector__lanes__lte=lanes,
+            gpuconnector__connector__version__lte=version,
         )
-
-        if allow_backward:
-            # GPU 4.0 pasuje do 3.0 (wolniej)
-            qs = qs.filter(gpuconnector__connector__version__lte=version)
-        else:
-            # tylko pełna zgodność lub nowsze
-            qs = qs.filter(gpuconnector__connector__version=version)
 
         return qs.distinct()

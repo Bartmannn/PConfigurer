@@ -16,18 +16,34 @@ function RAMList({ selected, onChange }) {
 
   return (
     <div>
-      <label>RAM: </label>
-      <select
-        value={selected.ram || ""}
-        onChange={(e) => onChange(parseInt(e.target.value))}
-      >
-        <option value="">-- Select RAM --</option>
+      <h4>RAM:</h4>
+      <ul style={{ listStyle: "none", padding: 0 }}>
+        <li
+          key="none"
+          onClick={() => onChange(null)}
+          style={{
+            padding: "8px",
+            cursor: "pointer",
+              background: selected.ram === null ? "linear-gradient(to right, #4f5f4f 0%, transparent 75%)" : "#242424",
+          }}
+        >
+          Brak
+        </li>
         {rams.map((ram) => (
-          <option key={ram.id} value={ram.id}>
+          <li
+            key={ram.id}
+            onClick={() => onChange(ram.id)}
+            style={{
+              padding: "8px",
+              borderTop: "1px solid #ccc",
+              cursor: "pointer",
+              background: selected.ram === ram.id ? "linear-gradient(to right, #4f5f4f 0%, transparent 75%)" : "#242424",
+            }}
+          >
             {ram.name}
-          </option>
+          </li>
         ))}
-      </select>
+      </ul>
     </div>
   );
 }

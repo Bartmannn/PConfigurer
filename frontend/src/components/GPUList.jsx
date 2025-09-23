@@ -1,23 +1,22 @@
 import { useEffect, useState } from "react";
 
-function CPUList({ selected, onChange }) {
-  const [cpus, setCpus] = useState([]);
+function GPUList({ selected, onChange }) {
+  const [gpus, setGpus] = useState([]);
 
   useEffect(() => {
-    let url = "http://localhost:8000/api/cpus/";
+    let url = "http://localhost:8000/api/gpus/";
     const params = [];
     if (selected.mobo) params.push(`mobo=${selected.mobo}`);
-    if (selected.ram) params.push(`ram=${selected.ram}`);
     if (params.length) url += "?" + params.join("&"); 
 
     fetch(url)
       .then((res) => res.json())
-      .then((data) => setCpus(data));
-  }, [selected.mobo, selected.ram]);
+      .then((data) => setGpus(data));
+  }, [selected.mobo]);
 
   return (
     <div>
-      <h4>CPU:</h4>
+      <h4>GPU:</h4>
       <ul style={{ listStyle: "none", padding: 0 }}>
         <li
           key="none"
@@ -25,23 +24,24 @@ function CPUList({ selected, onChange }) {
           style={{
             padding: "8px",
             cursor: "pointer",
-              background: selected.cpu === null ? "linear-gradient(to right, #4f5f4f 0%, transparent 75%)" : "#242424",
+              background: selected.gpu === null ? "linear-gradient(to right, #4f5f4f 0%, transparent 75%)" : "#242424",
           }}
         >
           Brak
         </li>
-        {cpus.map((cpu) => (
+        {
+        gpus.map((gpu) => (
           <li
-            key={cpu.id}
-            onClick={() => onChange(cpu.id)}
+            key={gpu.id}
+            onClick={() => onChange(gpu.id)}
             style={{
               padding: "8px",
               borderTop: "1px solid #ccc",
               cursor: "pointer",
-              background: selected.cpu === cpu.id ? "linear-gradient(to right, #4f5f4f 0%, transparent 75%)" : "#242424",
+              background: selected.gpu === gpu.id ? "linear-gradient(to right, #4f5f4f 0%, transparent 75%)" : "transparent",
             }}
           >
-            {cpu.name}
+            {gpu.name}
           </li>
         ))}
       </ul>
@@ -49,4 +49,4 @@ function CPUList({ selected, onChange }) {
   );
 }
 
-export default CPUList;
+export default GPUList;

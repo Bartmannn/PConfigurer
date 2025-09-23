@@ -8,26 +8,43 @@ function MotherboardList({ selected, onChange }) {
     const params = [];
     if (selected.cpu) params.push(`cpu=${selected.cpu}`);
     if (selected.ram) params.push(`ram=${selected.ram}`);
+    if (selected.gpu) params.push(`gpu=${selected.gpu}`);
     if (params.length) url += "?" + params.join("&");
     fetch(url)
       .then((res) => res.json())
       .then((data) => setMobos(data));
-  }, [selected.cpu, selected.ram]);
+  }, [selected.cpu, selected.ram, selected.gpu]);
 
   return (
     <div>
-      <label>Motherboard: </label>
-      <select
-        value={selected.mobo || ""}
-        onChange={(e) => onChange(parseInt(e.target.value))}
-      >
-        <option value="">-- Select Motherboard --</option>
+      <h4>Motherboard:</h4>
+      <ul style={{ listStyle: "none", padding: 0 }}>
+        <li
+          key="none"
+          onClick={() => onChange(null)}
+          style={{
+            padding: "8px",
+            cursor: "pointer",
+              background: selected.mobo === null ? "linear-gradient(to right, #4f5f4f 0%, transparent 75%)" : "#242424",
+          }}
+        >
+          Brak
+        </li>
         {mobos.map((mobo) => (
-          <option key={mobo.id} value={mobo.id}>
+          <li
+            key={mobo.id}
+            onClick={() => onChange(mobo.id)}
+            style={{
+              padding: "8px",
+              borderTop: "1px solid #ccc",
+              cursor: "pointer",
+              background: selected.mobo === mobo.id ? "linear-gradient(to right, #4f5f4f 0%, transparent 75%)" : "#242424",
+            }}
+          >
             {mobo.name}
-          </option>
+          </li>
         ))}
-      </select>
+      </ul>
     </div>
   );
 }

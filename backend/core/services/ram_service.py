@@ -22,12 +22,12 @@ class RAMService:
         cpu_pk = data.get("cpu")
         mobo_pk = data.get("mobo")
         
-        print(f"\n\n\nCMP RAM: {cpu_pk} | {mobo_pk}")
+        # print(f"\n\n\nCMP RAM: {cpu_pk} | {mobo_pk}")
         
         if cpu_pk:
             cpu = CPU.objects.get(pk=cpu_pk)
             qs = qs.filter(base__in=cpu.supported_ram.all())
-            print(f"\nCMP RAM cpu: {qs}")
+            # print(f"\nCMP RAM cpu: {qs}")
         
         if mobo_pk:
             mobo = Motherboard.objects.get(pk=mobo_pk)
@@ -36,6 +36,6 @@ class RAMService:
                 modules_count__lte=mobo.dimm_slots,
                 total_capacity__lte=mobo.max_ram_capacity
             )
-            print(f"\nCMP RAM mobo: {qs}\n\n\n")
+            # print(f"\nCMP RAM mobo: {qs}\n\n\n")
 
         return qs
