@@ -36,7 +36,7 @@ class MotherboardService:
             )
             
         if gpu_pk:
-            gpu = GPU.objects.get(pk=gpu_pk)
+            gpu = GPU.objects.get(pk=gpu_pk) # TODO: czy tutaj order_by jest konieczne?
             gpu_conn = (
                 GPUConnector.objects
                 .filter(gpu=gpu, connector__category="PCIe")

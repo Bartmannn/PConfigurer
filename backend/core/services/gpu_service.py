@@ -1,8 +1,9 @@
 from core.models import (
     Motherboard, GPU, Case, GPUConnector, MotherboardConnector,
-    CPU, PSU
+    CPU, PSU, PSUConnector
 )
 from core.services.psu_service import PSUService
+from core import tools
 
 class GPUService:
         
@@ -54,7 +55,7 @@ class GPUService:
             lanes = mobo_slot["connector__lanes"]
             version = mobo_slot["connector__version"]
 
-            qs = GPU.objects.filter(
+            qs = qs.filter(
                 gpuconnector__connector__category="PCIe",
                 gpuconnector__connector__lanes__lte=lanes,
                 gpuconnector__connector__version__lte=version,
@@ -63,13 +64,20 @@ class GPUService:
         if cpu_pk:
             cpu_wattage = CPU.objects.filter(pk=cpu_pk).values_list("tdp", flat=True).first()
             
-        print(f"DEBUG GPU: mobo={mobo_pk}, cpu={cpu_pk}, psu={psu_pk}")
+        if psu_pk: # TODO: pobieraj tylko potrzebne kolumny, zaoszczędzisz na pamięci i czasie
+            psu = PSU.objects.get(pk=psu_pk)
             
-        if psu_pk:
-            psu_wattage = PSU.objects.filter(pk=psu_pk).values_list("wattage", flat=True).first()
-            if not psu_wattage:
-                raise ValueError("psu_wattage NOT FOUND!")
-            qs = qs.filter(tdp__lte=psu_wattage * PSUService.SAFETY_FACTOR - cpu_wattage)
+            psu_gpu_power = list(PSUConnector.objects.filter(
+                psu=psu,
+                connector__category="PCIe Power"
+            ))
+            psu_gpu_power = [psu_conn.connector for psu_conn in psu_gpu_power]
+            
+            qs = qs.filter(
+                gpuconnector__connector__category="PCIe Power",
+                gpuconnector__connector__in=psu_gpu_power,
+                tdp__lte=psu.wattage * PSUService.SAFETY_FACTOR - cpu_wattage
+            )
 
         return qs.distinct()
 
