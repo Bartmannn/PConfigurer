@@ -46,7 +46,7 @@ class Socket(models.Model):
 
 
 class CPU(models.Model):
-    # TODO: chipset, TDP, typy pamięci
+    # TODO: chipset, typy pamięci
 
     name = models.CharField(max_length=120)
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
@@ -56,6 +56,7 @@ class CPU(models.Model):
     base_clock_ghz = models.DecimalField(max_digits=4, decimal_places=2, null=False, blank=False)
     boost_clock_ghz = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     supported_ram = models.ManyToManyField(RAMBase)
+    tdp = models.PositiveSmallIntegerField()
 
     def __str__(self):
         return f"{self.name} {self.base_clock_ghz}GHz"
@@ -72,32 +73,29 @@ class Storage(models.Model):
         return f"{self.name} {self.capacity_gb}GB {self.type}"
 
 
-class PSU(models.Model):
-    manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
-    name = models.CharField(max_length=120)
-    wattage_w = models.PositiveIntegerField()
-    efficiency = models.CharField(max_length=16)   # 80+ Bronze/Gold/Platinum
-
-    def __str__(self):
-        return f"{self.name} {self.wattage_w}W"
-
-
 class Connector(models.Model):
      # TODO: pozostałe złączki
-    category = models.CharField(max_length=8, choices=[
+    category = models.CharField(max_length=10, choices=[
         ("PCIe", "PCIe"),
         ("M.2 PCIe", "M.2 PCIe"),
         ("M.2 SATA", "M.2 SATA"),
         ("SATA", "SATA"),
         ("USB", "USB"),
         ("Fan", "Fan"),
-        ("Power", "Power"),
+        ("ATX Power", "ATX Power"),
+        ("CPU Power", "CPU Power"),
+        ("PCIe Power", "PCIe Power"),
+        ("SATA Power", "SATA Power"),
+        ("Molex", "Moelx"),
         ("Audio", "Audio"),
+        ("Audio", "Audio"),
+        
     ])
     version = models.DecimalField(max_digits=2, decimal_places=1, null=True, blank=True)
     lanes = models.PositiveSmallIntegerField(null=True, blank=True)
     speed = models.CharField(max_length=8, null=True, blank=True)
     extra = models.CharField(max_length=16, null=True, blank=True)
+    is_power = models.BooleanField(default=False)
 
     def __str__(self):
         match self.category:
@@ -115,10 +113,28 @@ class Connector(models.Model):
                 return f"{self.category} {self.version}"
             case "Fan":
                 raise NotImplemented("Sprawdź to")
-            case "Power":
-                return f"{self.category} {self.lanes} pin"
+            case "ATX Power" | "CPU Power" | "PCIe Power" | "SATA Power" | "Molex":
+                return f"{self.category} {self.lanes} pin {self.version or ''}"
             case "Audio":
                 raise NotImplemented("Sprawdź to")
+            case _:
+                return "?"
+
+
+class PSU(models.Model):
+    manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
+    name = models.CharField(max_length=120)
+    wattage = models.PositiveSmallIntegerField(help_text="Maximum output power (W)")
+    connectors = models.ManyToManyField("Connector", through="PSUConnector")
+
+    def __str__(self):
+        return f"{self.name} {self.wattage}W"
+
+
+class PSUConnector(models.Model):
+    psu = models.ForeignKey(PSU, on_delete=models.CASCADE)
+    connector = models.ForeignKey(Connector, on_delete=models.CASCADE)
+    quantity = models.PositiveSmallIntegerField()
 
 
 class GPU(models.Model):
@@ -132,6 +148,7 @@ class GPU(models.Model):
     
     # PCIe, HDMI, DisplayPort, PSU
     connectors = models.ManyToManyField(Connector, through="GPUConnector")
+    tdp = models.PositiveSmallIntegerField()
 
     def __str__(self):
         return self.name
@@ -146,21 +163,20 @@ class GPUConnector(models.Model):
 class Cooler(models.Model):
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     name = models.CharField(max_length=120)
-    type = models.CharField(max_length=16)         # air / aio240 / aio360
-    tdp_w_supported = models.PositiveIntegerField()
+    type = models.CharField(max_length=16)
     socket_compat = models.CharField(max_length=120)  # np. "AM4,AM5,LGA1700"
 
     def __str__(self):
         return self.name
-    
-    
+
+
 class FormFactor(models.Model):
     name = models.CharField(max_length=5, unique=True)
     
     def __str__(self):
         return self.name
 
-    
+
 class Case(models.Model):
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     name = models.CharField(max_length=120)

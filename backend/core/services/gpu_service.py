@@ -1,4 +1,8 @@
-from core.models import Motherboard, GPU, Case, GPUConnector, MotherboardConnector
+from core.models import (
+    Motherboard, GPU, Case, GPUConnector, MotherboardConnector,
+    CPU, PSU
+)
+from core.services.psu_service import PSUService
 
 class GPUService:
         
@@ -25,10 +29,14 @@ class GPUService:
         ).distinct()
 
     @staticmethod
-    def get_compatible_gpus(data: dict[str, int]):
+    def get_compatible_gpus(data: dict[str, int]): # TODO: check ram and adjust CPU!
         qs = GPU.objects.all()
         
         mobo_pk = data.get("mobo")
+        cpu_pk = data.get("cpu")
+        psu_pk = data.get("psu")
+        
+        cpu_wattage = 0
         
         if mobo_pk:
             mobo = Motherboard.objects.get(pk=mobo_pk)
@@ -51,6 +59,17 @@ class GPUService:
                 gpuconnector__connector__lanes__lte=lanes,
                 gpuconnector__connector__version__lte=version,
             )
+            
+        if cpu_pk:
+            cpu_wattage = CPU.objects.filter(pk=cpu_pk).values_list("tdp", flat=True).first()
+            
+        print(f"DEBUG GPU: mobo={mobo_pk}, cpu={cpu_pk}, psu={psu_pk}")
+            
+        if psu_pk:
+            psu_wattage = PSU.objects.filter(pk=psu_pk).values_list("wattage", flat=True).first()
+            if not psu_wattage:
+                raise ValueError("psu_wattage NOT FOUND!")
+            qs = qs.filter(tdp__lte=psu_wattage * PSUService.SAFETY_FACTOR - cpu_wattage)
 
         return qs.distinct()
 

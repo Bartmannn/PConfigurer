@@ -8,12 +8,14 @@ function CPUList({ selected, onChange }) {
     const params = [];
     if (selected.mobo) params.push(`mobo=${selected.mobo}`);
     if (selected.ram) params.push(`ram=${selected.ram}`);
+    if (selected.gpu) params.push(`gpu=${selected.gpu}`)
+    if (selected.psu) params.push(`psu=${selected.psu}`);
     if (params.length) url += "?" + params.join("&"); 
 
     fetch(url)
       .then((res) => res.json())
       .then((data) => setCpus(data));
-  }, [selected.mobo, selected.ram]);
+  }, [selected.mobo, selected.ram, selected.psu, selected.gpu]);
 
   return (
     <div>

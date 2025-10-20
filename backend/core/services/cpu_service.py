@@ -1,4 +1,5 @@
-from core.models import CPU, Motherboard, RAM
+from core.models import CPU, Motherboard, RAM, PSU, GPU
+from core.services.psu_service import PSUService
 
 
 class CPUService:
@@ -19,6 +20,10 @@ class CPUService:
         
         mobo_pk = data.get("mobo")
         ram_pk = data.get("ram")
+        gpu_pk = data.get("gpu")
+        psu_pk = data.get("psu")
+        
+        gpu_wattage = 0
         
         if mobo_pk:
             mobo = Motherboard.objects.get(pk=mobo_pk)
@@ -28,4 +33,11 @@ class CPUService:
             ram = RAM.objects.get(pk=ram_pk)
             qs = qs.filter(supported_ram__in=[ram.base])
             
-        return qs
+        if gpu_pk:
+            gpu_wattage = GPU.objects.filter(pk=gpu_pk).values_list("tdp", flat=True).first()
+            
+        if psu_pk:
+            psu_wattage = PSU.objects.filter(pk=psu_pk).values_list("wattage", flat=True).first()
+            qs = qs.filter(tdp__lte=psu_wattage * PSUService.SAFETY_FACTOR - gpu_wattage)
+            
+        return qs.distinct()

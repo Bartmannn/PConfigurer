@@ -9,11 +9,12 @@ function MotherboardList({ selected, onChange }) {
     if (selected.cpu) params.push(`cpu=${selected.cpu}`);
     if (selected.ram) params.push(`ram=${selected.ram}`);
     if (selected.gpu) params.push(`gpu=${selected.gpu}`);
+    if (selected.psu) params.push(`psu=${selected.psu}`);
     if (params.length) url += "?" + params.join("&");
     fetch(url)
       .then((res) => res.json())
       .then((data) => setMobos(data));
-  }, [selected.cpu, selected.ram, selected.gpu]);
+  }, [selected.cpu, selected.ram, selected.gpu, selected.psu]);
 
   return (
     <div>

@@ -3,16 +3,18 @@ import { useEffect, useState } from "react";
 function GPUList({ selected, onChange }) {
   const [gpus, setGpus] = useState([]);
 
-  useEffect(() => {
+  useEffect(() => { //TODO: uprościć tworzenie paramów
     let url = "http://localhost:8000/api/gpus/";
     const params = [];
     if (selected.mobo) params.push(`mobo=${selected.mobo}`);
+    if (selected.psu) params.push(`psu=${selected.psu}`);
+    if (selected.cpu) params.push(`cpu=${selected.cpu}`)
     if (params.length) url += "?" + params.join("&"); 
 
     fetch(url)
       .then((res) => res.json())
       .then((data) => setGpus(data));
-  }, [selected.mobo]);
+  }, [selected.mobo, selected.psu, selected.cpu]);
 
   return (
     <div>

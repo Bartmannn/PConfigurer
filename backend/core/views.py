@@ -1,6 +1,5 @@
 # core/views.py
 from rest_framework import viewsets, filters
-from django.db.models import Q
 from .models import (
     Manufacturer, CPU, GPU, Motherboard, RAM, Storage, PSU, Case, Cooler, Build
 )
@@ -13,6 +12,9 @@ from core.services.motherboard_service import MotherboardService
 from core.services.cpu_service import CPUService
 from core.services.ram_service import RAMService
 from core.services.gpu_service import GPUService
+from core.services.psu_service import PSUService
+
+from core import tools
 
 # --- Bazowy ViewSet z wyszukiwaniem i sortowaniem ---
 class BaseViewSet(viewsets.ModelViewSet):
@@ -32,13 +34,9 @@ class CPUViewSet(BaseViewSet):
     serializer_class = CPUSerializer
 
     def get_queryset(self):
-        params = {
-            k: int(v) \
-                for k, v in self.request.query_params.items()
-        }
-        qs = CPUService.get_compatible_cpus(params)
-        
-        return qs
+        return CPUService.get_compatible_cpus(
+            data=tools.extract_params(self.request)                                    
+        )
 
 
 # --- GPU ---
@@ -47,13 +45,9 @@ class GPUViewSet(BaseViewSet):
     serializer_class = GPUSerializer
 
     def get_queryset(self):
-        params = {
-            k: int(v) \
-                for k, v in self.request.query_params.items()
-        }
-        qs = GPUService.get_compatible_gpus(params)
-        
-        return qs
+        return GPUService.get_compatible_gpus(
+            data=tools.extract_params(self.request)
+        )
 
 
 # --- Motherboard ---
@@ -62,13 +56,9 @@ class MotherboardViewSet(BaseViewSet):
     serializer_class = MotherboardSerializer
 
     def get_queryset(self):
-        params = {
-            k: int(v) \
-                for k, v in self.request.query_params.items()
-        }
-        qs = MotherboardService.get_compatible_motherboards(params)
-
-        return qs
+        return MotherboardService.get_compatible_motherboards(
+            data=tools.extract_params(self.request)
+        )
 
 
 # --- RAM ---
@@ -77,12 +67,9 @@ class RAMViewSet(BaseViewSet):
     serializer_class = RAMSerializer
 
     def get_queryset(self):
-        params = {
-            k: int(v) \
-                for k, v in self.request.query_params.items()
-        }
-        qs = RAMService.get_compatible_rams(params)
-        return qs
+        return RAMService.get_compatible_rams(
+            data=tools.extract_params(self.request)
+        )
 
 
 # --- Storage ---
@@ -107,18 +94,11 @@ class StorageViewSet(BaseViewSet):
 class PSUViewSet(BaseViewSet):
     queryset = PSU.objects.all().order_by("id")
     serializer_class = PSUSerializer
-    search_fields = ["name", "manufacturer__name", "efficiency"]
-    ordering_fields = ["wattage_w", "id"]
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        min_wattage = self.request.query_params.get("min_wattage")
-        efficiency = self.request.query_params.get("efficiency")  # np. "80+ Gold"
-        if min_wattage:
-            qs = qs.filter(wattage_w__gte=min_wattage)
-        if efficiency:
-            qs = qs.filter(efficiency__icontains=efficiency)
-        return qs
+        return PSUService.get_compatible_psus(
+            data=tools.extract_params(self.request)
+        )
 
 
 # --- Case ---

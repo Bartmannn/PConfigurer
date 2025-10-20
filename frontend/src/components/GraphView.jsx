@@ -4,12 +4,12 @@ import ForceGraph2D from "react-force-graph-2d";
 const GraphView = ({ selected, onNodeSelect }) => {
   const data = {
     nodes: [
-      { id: "CPU", label: "CPU", fx: 100, fy: -100 },
+      { id: "CPU", label: "CPU", fx: 100, fy: 0 },
       { id: "MOBO", label: "Płyta główna", fx: 0, fy: 0 },
-      { id: "RAM", label: "RAM", fx: 100, fy: 100 },
-    //   { id: "PSU", label: "PSU", fx: 100, fy: 100 },
+      { id: "RAM", label: "RAM", fx: 50, fy: -100 },
+      { id: "GPU", label: "GPU", fx: -100, fy: 0 },
+      { id: "PSU", label: "PSU", fx: 0, fy: 100 },
     //   { id: "MEM", label: "Dysk", fx: 100, fy: 100 },
-      { id: "GPU", label: "GPU", fx: 150, fy: 150 },
     //   { id: "Case", label: "Obudowa", fx: 100, fy: 100 },
     //   { id: "Cool", label: "Chłodzenie", fx: 100, fy: 100 },
     ],
@@ -17,7 +17,10 @@ const GraphView = ({ selected, onNodeSelect }) => {
       { source: "CPU", target: "MOBO", color: "gray" },
       { source: "RAM", target: "MOBO", color: "gray" },
       { source: "RAM", target: "CPU", color: "gray" },
-      // { srouce: "GPU", target: "MOBO", color: "gray" },
+      { source: "GPU", target: "MOBO", color: "gray" },
+      { source: "PSU", target: "GPU", color: "gray" },
+      { source: "PSU", target: "MOBO", color: "gray" },
+      { source: "PSU", target: "CPU", color: "gray" },
     ],
   };
 
