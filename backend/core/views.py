@@ -13,6 +13,7 @@ from core.services.cpu_service import CPUService
 from core.services.ram_service import RAMService
 from core.services.gpu_service import GPUService
 from core.services.psu_service import PSUService
+from core.services.storage_service import StorageService
 
 from core import tools
 
@@ -76,18 +77,19 @@ class RAMViewSet(BaseViewSet):
 class StorageViewSet(BaseViewSet):
     queryset = Storage.objects.all().order_by("id")
     serializer_class = StorageSerializer
-    search_fields = ["name", "manufacturer__name", "type"]
-    ordering_fields = ["capacity_gb", "id"]
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        typ = self.request.query_params.get("type")      # NVMe / SATA
-        min_capacity = self.request.query_params.get("min_capacity")
-        if typ:
-            qs = qs.filter(type__iexact=typ)
-        if min_capacity:
-            qs = qs.filter(capacity_gb__gte=min_capacity)
-        return qs
+        return StorageService.get_compatible_storage(
+            data=tools.extract_params(self.request)
+        )
+        # qs = super().get_queryset()
+        # typ = self.request.query_params.get("type")      # NVMe / SATA
+        # min_capacity = self.request.query_params.get("min_capacity")
+        # if typ:
+        #     qs = qs.filter(type__iexact=typ)
+        # if min_capacity:
+        #     qs = qs.filter(capacity_gb__gte=min_capacity)
+        # return qs
 
 
 # --- PSU ---
@@ -167,4 +169,3 @@ class BuildViewSet(BaseViewSet):
         if user_id:
             qs = qs.filter(user_id=user_id)
         return qs
-

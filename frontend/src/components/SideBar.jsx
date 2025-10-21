@@ -39,6 +39,9 @@ function SideBar({ selectedNode, selected, onChange }) {
         {selectedNode?.id === "PSU" && (
           <PSUList selected={selected} onChange={(id) => onChange("psu", id)} />
         )}
+        {selectedNode?.id === "MEM" && (
+          <PSUList selected={selected} onChange={(id) => onChange("mem", id)} />
+        )}
       </div>
     </div>
   );

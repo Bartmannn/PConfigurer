@@ -103,7 +103,7 @@ class Connector(models.Model):
                 return f"{self.category} {self.version} x{self.lanes}"
             case "M.2 PCIe":
                 support_SATA = " / SATA" if self.extra else ""
-                return f"{self.category} NVMe {self.version} {self.lanes}{support_SATA}"
+                return f"{self.category} NVMe {self.version} x{self.lanes}{support_SATA}"
             case "M.2 SATA":
                 return f"{self.category}"
             case "SATA":

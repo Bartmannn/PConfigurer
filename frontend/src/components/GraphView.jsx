@@ -9,7 +9,7 @@ const GraphView = ({ selected, onNodeSelect }) => {
       { id: "RAM", label: "RAM", fx: 50, fy: -100 },
       { id: "GPU", label: "GPU", fx: -100, fy: 0 },
       { id: "PSU", label: "PSU", fx: 0, fy: 100 },
-    //   { id: "MEM", label: "Dysk", fx: 100, fy: 100 },
+      { id: "MEM", label: "Dysk", fx: -50, fy: -100 },
     //   { id: "Case", label: "Obudowa", fx: 100, fy: 100 },
     //   { id: "Cool", label: "Chłodzenie", fx: 100, fy: 100 },
     ],
@@ -21,6 +21,7 @@ const GraphView = ({ selected, onNodeSelect }) => {
       { source: "PSU", target: "GPU", color: "gray" },
       { source: "PSU", target: "MOBO", color: "gray" },
       { source: "PSU", target: "CPU", color: "gray" },
+      { source: "MEM", target: "MOBO", color: "gray" },
     ],
   };
 
