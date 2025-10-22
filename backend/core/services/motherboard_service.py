@@ -1,5 +1,5 @@
-from core.models import Motherboard, CPU, RAM, MotherboardConnector, GPU, GPUConnector
-
+from core.models import Motherboard, CPU, RAM, MotherboardConnector, GPU, GPUConnector, Storage
+from core import tools
 
 class MotherboardService:
     
@@ -22,6 +22,7 @@ class MotherboardService:
         cpu_pk = data.get("cpu")
         ram_pk = data.get("ram")
         gpu_pk = data.get("gpu")
+        mem_pk = data.get("mem")
         
         if cpu_pk:
             cpu = CPU.objects.get(pk=cpu_pk)
@@ -54,7 +55,26 @@ class MotherboardService:
                 motherboardconnector__quantity__gte=1
             )
             
-        return qs
+        if mem_pk:
+            mem = Storage.objects.get(pk=mem_pk)
+            mem_conn = mem.connector
+            
+            allowed_slots = [mem_conn.category]
+            if mem_conn.extra:
+                allowed_slots.append("M.2 SATA")
+                
+            if mem_conn.category == "M.2 SATA":
+                qs = qs.filter(
+                    motherboardconnector__connector__category__in=allowed_slots,
+                )
+            else:
+                qs = qs.filter(
+                    motherboardconnector__connector__category__in=allowed_slots,
+                    motherboardconnector__connector__version__gte=mem_conn.version,
+                    motherboardconnector__connector__lanes__gte=mem_conn.lanes,
+                )
+            
+        return qs.distinct()
     
     @staticmethod
     def get_compatible_gpus(mobo: Motherboard):

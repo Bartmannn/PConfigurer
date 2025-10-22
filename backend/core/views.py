@@ -79,17 +79,9 @@ class StorageViewSet(BaseViewSet):
     serializer_class = StorageSerializer
 
     def get_queryset(self):
-        return StorageService.get_compatible_storage(
+        return StorageService.get_compatible_m2(
             data=tools.extract_params(self.request)
         )
-        # qs = super().get_queryset()
-        # typ = self.request.query_params.get("type")      # NVMe / SATA
-        # min_capacity = self.request.query_params.get("min_capacity")
-        # if typ:
-        #     qs = qs.filter(type__iexact=typ)
-        # if min_capacity:
-        #     qs = qs.filter(capacity_gb__gte=min_capacity)
-        # return qs
 
 
 # --- PSU ---

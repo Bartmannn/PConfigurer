@@ -3,6 +3,7 @@ import GPUList from "./GPUList";
 import MotherboardList from "./MotherboardList";
 import RAMList from "./RAMList";
 import PSUList from "./PSUList";
+import MemoryList from "./MemoryList";
 
 function SideBar({ selectedNode, selected, onChange }) {
   return (
@@ -40,7 +41,7 @@ function SideBar({ selectedNode, selected, onChange }) {
           <PSUList selected={selected} onChange={(id) => onChange("psu", id)} />
         )}
         {selectedNode?.id === "MEM" && (
-          <PSUList selected={selected} onChange={(id) => onChange("mem", id)} />
+          <MemoryList selected={selected} onChange={(id) => onChange("mem", id)} />
         )}
       </div>
     </div>

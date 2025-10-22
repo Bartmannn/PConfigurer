@@ -7,6 +7,54 @@ class Manufacturer(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+class Connector(models.Model):
+     # TODO: pozostałe złączki
+    category = models.CharField(max_length=10, choices=[
+        ("PCIe", "PCIe"),
+        ("M.2 PCIe", "M.2 PCIe"),
+        ("M.2 SATA", "M.2 SATA"),
+        ("SATA", "SATA"),
+        ("USB", "USB"),
+        ("Fan", "Fan"),
+        ("ATX Power", "ATX Power"),
+        ("CPU Power", "CPU Power"),
+        ("PCIe Power", "PCIe Power"),
+        ("SATA Power", "SATA Power"),
+        ("Molex", "Moelx"),
+        ("Audio", "Audio"),
+        ("Audio", "Audio"),
+        
+    ])
+    version = models.DecimalField(max_digits=2, decimal_places=1, null=True, blank=True)
+    lanes = models.PositiveSmallIntegerField(null=True, blank=True)
+    speed = models.CharField(max_length=8, null=True, blank=True)
+    extra = models.CharField(max_length=16, null=True, blank=True)
+    is_power = models.BooleanField(default=False)
+
+    def __str__(self):
+        match self.category:
+            case "PCIe":
+                return f"{self.category} {self.version} x{self.lanes}"
+            case "M.2 PCIe":
+                support_SATA = " / SATA" if self.extra else ""
+                return f"{self.category} NVMe {self.version} x{self.lanes}{support_SATA}"
+            case "M.2 SATA":
+                return f"{self.category}"
+            case "SATA":
+                rome_digit = 'I'*int(self.version)
+                return f"{self.category} {rome_digit} ({self.speed}Gb/s)"
+            case "USB":
+                return f"{self.category} {self.version}"
+            case "Fan":
+                raise NotImplemented("Sprawdź to")
+            case "ATX Power" | "CPU Power" | "PCIe Power" | "SATA Power" | "Molex":
+                return f"{self.category} {self.lanes} pin {self.version or ''}"
+            case "Audio":
+                raise NotImplemented("Sprawdź to")
+            case _:
+                return "?"
 
 
 class RAMBase(models.Model):
@@ -65,60 +113,21 @@ class CPU(models.Model):
 class Storage(models.Model):
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     name = models.CharField(max_length=120)
-    type = models.CharField(max_length=16)         # NVMe / SATA
+    connector = models.ForeignKey(Connector, on_delete=models.PROTECT)
     capacity_gb = models.PositiveIntegerField()
-    pcie_version = models.CharField(max_length=8, null=True, blank=True)
-
-    def __str__(self):
-        return f"{self.name} {self.capacity_gb}GB {self.type}"
-
-
-class Connector(models.Model):
-     # TODO: pozostałe złączki
-    category = models.CharField(max_length=10, choices=[
-        ("PCIe", "PCIe"),
-        ("M.2 PCIe", "M.2 PCIe"),
-        ("M.2 SATA", "M.2 SATA"),
-        ("SATA", "SATA"),
-        ("USB", "USB"),
-        ("Fan", "Fan"),
-        ("ATX Power", "ATX Power"),
-        ("CPU Power", "CPU Power"),
-        ("PCIe Power", "PCIe Power"),
-        ("SATA Power", "SATA Power"),
-        ("Molex", "Moelx"),
-        ("Audio", "Audio"),
-        ("Audio", "Audio"),
-        
-    ])
-    version = models.DecimalField(max_digits=2, decimal_places=1, null=True, blank=True)
-    lanes = models.PositiveSmallIntegerField(null=True, blank=True)
-    speed = models.CharField(max_length=8, null=True, blank=True)
-    extra = models.CharField(max_length=16, null=True, blank=True)
-    is_power = models.BooleanField(default=False)
-
-    def __str__(self):
-        match self.category:
-            case "PCIe":
-                return f"{self.category} {self.version} x{self.lanes}"
+    
+    @property
+    def type(self):
+        match self.connector.category:
             case "M.2 PCIe":
-                support_SATA = " / SATA" if self.extra else ""
-                return f"{self.category} NVMe {self.version} x{self.lanes}{support_SATA}"
-            case "M.2 SATA":
-                return f"{self.category}"
-            case "SATA":
-                rome_digit = 'I'*int(self.version)
-                return f"{self.category} {rome_digit} ({self.speed}Gb/s)"
-            case "USB":
-                return f"{self.category} {self.version}"
-            case "Fan":
-                raise NotImplemented("Sprawdź to")
-            case "ATX Power" | "CPU Power" | "PCIe Power" | "SATA Power" | "Molex":
-                return f"{self.category} {self.lanes} pin {self.version or ''}"
-            case "Audio":
-                raise NotImplemented("Sprawdź to")
+                return "NVMe"
+            case "M.2 SATA" | "SATA":
+                return "SATA"
             case _:
-                return "?"
+                return "Unknown"
+
+    def __str__(self):
+        return f"{self.manufacturer} {self.name} {self.capacity_gb}GB {self.connector}"
 
 
 class PSU(models.Model):
