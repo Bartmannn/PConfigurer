@@ -1,5 +1,5 @@
 
-from core.models import PSU, PSUConnector, Motherboard, GPU, MotherboardConnector, GPUConnector, CPU
+from core.models import PSU, PSUConnector, Case, Motherboard, GPU, MotherboardConnector, GPUConnector, CPU
 
 class PSUService:
     
@@ -10,25 +10,39 @@ class PSUService:
         
         qs = PSU.objects.all()
         
-        mobo_pk = data.get("mobo")
         gpu_pk = data.get("gpu")
         cpu_pk = data.get("cpu")
+        mobo_pk = data.get("mobo")
+        case_pk = data.get("case")
 
         total_tdp = 0
         
         if cpu_pk:
-            cpu = CPU.objects.get(pk=cpu_pk)
-            total_tdp += cpu.tdp or 0
+            cpu_tdp = (
+                CPU.objects.filter(pk=cpu_pk)
+                .values_list("tdp", flat=True)
+                .first()
+            ) or 0
+            total_tdp += cpu_tdp
             
         if gpu_pk:
-            gpu = GPU.objects.get(pk=gpu_pk)
-            total_tdp += gpu.tdp or 0
-            qs = PSUService.filter_by_gpu(qs, gpu)
+            gpu_tdp = (
+                GPU.objects.filter(pk=gpu_pk)
+                .values_list("tdp", flat=True)
+                .first()
+            ) or 0
+            total_tdp += gpu_tdp
+            # qs = PSUService.filter_by_gpu(qs, gpu) # TODO: do poprawy, coś nie działało!
 
         if mobo_pk:
             mobo = Motherboard.objects.get(pk=mobo_pk)
             qs = PSUService.filter_by_mobo(qs, mobo)
             
+        if case_pk:
+            case = Case.objects.filter(pk=case_pk).prefetch_related("psu_form_factor_support").first()
+            supported_formats = case.psu_form_factor_support.all()
+            qs = qs.filter(form_factor__in=supported_formats)
+        
         required_wattage = int(total_tdp * 1.3)
         qs = qs.filter(wattage__gte=required_wattage)
 
@@ -36,7 +50,7 @@ class PSUService:
     
     
     @staticmethod
-    def filter_by_mobo(qs, mobo: Motherboard):
+    def filter_by_mobo(qs, mobo: Motherboard): # TODO: też mi się to nie podoba
         
         mobo_conns = MotherboardConnector.objects.filter(
             motherboard=mobo,
@@ -53,7 +67,7 @@ class PSUService:
     
     
     @staticmethod
-    def filter_by_gpu(qs, gpu: GPU):
+    def filter_by_gpu(qs, gpu: GPU): # TODO: absolutnie mi się to nie podoba!
         
         gpu_conns = GPUConnector.objects.filter(gpu=gpu, connector__category="PCIe Power")
         
@@ -69,23 +83,5 @@ class PSUService:
                 )
                 
         return qs
-    
-    
-    @staticmethod
-    def evaluate_psu_quality(psu: PSU, total_tdp: int) -> float:
-        
-        if not psu.wattage:
-            return 0
-        
-        ratio = psu.wattage / total_tdp
-        if ratio >= 1.5:
-            return 5
-        elif ratio >= 1.3:
-            return 4
-        elif ratio >= 1.1:
-            return 3
-        
-        return 2
-            
         
         

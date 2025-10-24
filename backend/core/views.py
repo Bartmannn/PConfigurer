@@ -14,6 +14,7 @@ from core.services.ram_service import RAMService
 from core.services.gpu_service import GPUService
 from core.services.psu_service import PSUService
 from core.services.storage_service import StorageService
+from core.services.case_service import CaseService
 
 from core import tools
 
@@ -99,21 +100,11 @@ class PSUViewSet(BaseViewSet):
 class CaseViewSet(BaseViewSet):
     queryset = Case.objects.all().order_by("id")
     serializer_class = CaseSerializer
-    search_fields = ["name", "manufacturer__name", "form_factor_support"]
-    ordering_fields = ["max_gpu_length_mm", "max_cooler_height_mm", "id"]
 
     def get_queryset(self):
-        qs = super().get_queryset()
-        needs_form = self.request.query_params.get("form_factor")  # ATX / mATX / ITX
-        min_gpu_len = self.request.query_params.get("min_gpu_length")
-        min_cooler_h = self.request.query_params.get("min_cooler_height")
-        if needs_form:
-            qs = qs.filter(form_factor_support__icontains=needs_form)
-        if min_gpu_len:
-            qs = qs.filter(max_gpu_length_mm__gte=min_gpu_len)
-        if min_cooler_h:
-            qs = qs.filter(max_cooler_height_mm__gte=min_cooler_h)
-        return qs
+        return CaseService.get_compatible_cases(
+            data=tools.extract_params(self.request)
+        )
 
 
 # --- Cooler ---

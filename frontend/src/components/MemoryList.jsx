@@ -7,8 +7,6 @@ function MemoryList({ selected, onChange }) {
     let url = "http://localhost:8000/api/mems/";
     const params = [];
     if (selected.mobo) params.push(`mobo=${selected.mobo}`);
-    // if (selected.psu) params.push(`psu=${selected.psu}`);
-    // if (selected.cpu) params.push(`cpu=${selected.cpu}`)
     if (params.length) url += "?" + params.join("&"); 
 
     fetch(url)

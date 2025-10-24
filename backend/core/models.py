@@ -130,11 +130,19 @@ class Storage(models.Model):
         return f"{self.manufacturer} {self.name} {self.capacity_gb}GB {self.connector}"
 
 
+class PSUFormFactor(models.Model):
+    name = models.CharField(max_length=5, unique=True)
+    
+    def __str__(self):
+        return self.name
+
+
 class PSU(models.Model):
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     name = models.CharField(max_length=120)
     wattage = models.PositiveSmallIntegerField(help_text="Maximum output power (W)")
     connectors = models.ManyToManyField("Connector", through="PSUConnector")
+    form_factor = models.ForeignKey(PSUFormFactor, on_delete=models.PROTECT)
 
     def __str__(self):
         return f"{self.name} {self.wattage}W"
@@ -179,22 +187,23 @@ class Cooler(models.Model):
         return self.name
 
 
-class FormFactor(models.Model):
+class MotherboardFormFactor(models.Model):
     name = models.CharField(max_length=5, unique=True)
     
     def __str__(self):
         return self.name
 
 
-class Case(models.Model):
+class Case(models.Model): # TODO: chłodzenie procka wysokość
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     name = models.CharField(max_length=120)
-    form_factor_support = models.ManyToManyField(FormFactor)
-    max_gpu_length_mm = models.PositiveIntegerField()
-    max_cooler_height_mm = models.PositiveIntegerField()
+    mobo_form_factor_support = models.ManyToManyField(MotherboardFormFactor)
+    psu_form_factor_support = models.ManyToManyField(PSUFormFactor)
+    max_gpu_length_mm = models.PositiveSmallIntegerField()
+    # max_cooler_height_mm = models.PositiveSmallIntegerField()
 
     def __str__(self):
-        return self.name
+        return f"{self.manufacturer} {self.name}"
 
 
 class Motherboard(models.Model):
@@ -202,7 +211,7 @@ class Motherboard(models.Model):
     name = models.CharField(max_length=128)
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     socket = models.ForeignKey(Socket, on_delete=models.PROTECT)
-    form_factor = models.ForeignKey(FormFactor, on_delete=models.CASCADE)
+    form_factor = models.ForeignKey(MotherboardFormFactor, on_delete=models.CASCADE)
     
     # RAM
     supported_ram = models.ManyToManyField(RAMBase)

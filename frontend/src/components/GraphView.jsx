@@ -1,4 +1,3 @@
-import React from "react";
 import ForceGraph2D from "react-force-graph-2d";
 
 const GraphView = ({ selected, onNodeSelect }) => {
@@ -6,11 +5,11 @@ const GraphView = ({ selected, onNodeSelect }) => {
     nodes: [
       { id: "CPU", label: "CPU", fx: 100, fy: 0 },
       { id: "MOBO", label: "Płyta główna", fx: 0, fy: 0 },
-      { id: "RAM", label: "RAM", fx: 50, fy: -100 },
-      { id: "GPU", label: "GPU", fx: -100, fy: 0 },
-      { id: "PSU", label: "PSU", fx: 0, fy: 100 },
-      { id: "MEM", label: "Dysk", fx: -50, fy: -100 },
-    //   { id: "Case", label: "Obudowa", fx: 100, fy: 100 },
+      { id: "RAM", label: "RAM", fx: 100, fy: -100 },
+      { id: "GPU", label: "GPU", fx: -100, fy: 100 },
+      { id: "PSU", label: "PSU", fx: 100, fy: 100 },
+      { id: "MEM", label: "Dysk", fx: 0, fy: -100 },
+      { id: "Chassis", label: "Obudowa", fx: 0, fy: 150 },
     //   { id: "Cool", label: "Chłodzenie", fx: 100, fy: 100 },
     ],
     links: [
@@ -22,6 +21,7 @@ const GraphView = ({ selected, onNodeSelect }) => {
       { source: "PSU", target: "MOBO", color: "gray" },
       { source: "PSU", target: "CPU", color: "gray" },
       { source: "MEM", target: "MOBO", color: "gray" },
+      { source: "Chassis", target: "MOBO", color: "gray" },
     ],
   };
 

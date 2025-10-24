@@ -4,6 +4,7 @@ import MotherboardList from "./MotherboardList";
 import RAMList from "./RAMList";
 import PSUList from "./PSUList";
 import MemoryList from "./MemoryList";
+import ChassisList from "./ChassisList";
 
 function SideBar({ selectedNode, selected, onChange }) {
   return (
@@ -42,6 +43,9 @@ function SideBar({ selectedNode, selected, onChange }) {
         )}
         {selectedNode?.id === "MEM" && (
           <MemoryList selected={selected} onChange={(id) => onChange("mem", id)} />
+        )}
+        {selectedNode?.id === "Chassis" && (
+          <ChassisList selected={selected} onChange={(id) => onChange("chassis", id)} />
         )}
       </div>
     </div>

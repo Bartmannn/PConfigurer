@@ -6,15 +6,16 @@ function PSUList({ selected, onChange }) {
   useEffect(() => {
     let url = "http://localhost:8000/api/psus/";
     const params = [];
-    if (selected.mobo) params.push(`mobo=${selected.mobo}`);
     if (selected.gpu) params.push(`gpu=${selected.gpu}`);
     if (selected.cpu) params.push(`cpu=${selected.cpu}`);
+    if (selected.mobo) params.push(`mobo=${selected.mobo}`);
+    if (selected.chassis) params.push(`case=${selected.chassis}`)
     if (params.length) url += "?" + params.join("&"); 
 
     fetch(url)
       .then((res) => res.json())
       .then((data) => setPsus(data));
-  }, [selected.mobo, selected.gpu, selected.cpu]);
+  }, [selected.mobo, selected.gpu, selected.cpu, selected.chassis]);
 
   return (
     <div>

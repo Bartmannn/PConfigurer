@@ -1,13 +1,14 @@
 from django.contrib import admin
 from .models import (
     MotherboardConnector, GPUConnector, PSUConnector,
-    Manufacturer, Motherboard, FormFactor, Connector,
-    Storage, RAMBase, Socket, Cooler, Build, Case,
-    CPU, GPU, RAM, PSU 
+    Manufacturer, Motherboard, Connector, Storage,
+    RAMBase, Socket, Cooler, Build, Case, CPU, GPU,
+    RAM, PSU, MotherboardFormFactor, PSUFormFactor 
 )
 
+admin.site.register(MotherboardFormFactor)
+admin.site.register(PSUFormFactor)
 admin.site.register(Manufacturer)
-admin.site.register(FormFactor)
 admin.site.register(Storage)
 admin.site.register(RAMBase)
 admin.site.register(Socket)

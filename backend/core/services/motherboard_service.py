@@ -1,4 +1,4 @@
-from core.models import Motherboard, CPU, RAM, MotherboardConnector, GPU, GPUConnector, Storage
+from core.models import Motherboard, CPU, RAM, MotherboardConnector, Case, GPU, GPUConnector, Storage
 from core import tools
 
 class MotherboardService:
@@ -23,6 +23,7 @@ class MotherboardService:
         ram_pk = data.get("ram")
         gpu_pk = data.get("gpu")
         mem_pk = data.get("mem")
+        case_pk = data.get("case")
         
         if cpu_pk:
             cpu = CPU.objects.get(pk=cpu_pk)
@@ -73,6 +74,15 @@ class MotherboardService:
                     motherboardconnector__connector__version__gte=mem_conn.version,
                     motherboardconnector__connector__lanes__gte=mem_conn.lanes,
                 )
+                
+        if case_pk: # TODO: jak działa prefetch_related? nie mam intuicji
+            case = (
+                Case.objects.filter(pk=case_pk)
+                    .prefetch_related("mobo_form_factor_support")
+                    .first()
+            )
+            supported_formats = case.mobo_form_factor_support.all()
+            qs = qs.filter(form_factor__in=supported_formats)
             
         return qs.distinct()
     
@@ -81,10 +91,10 @@ class MotherboardService:
         # pobierz maksymalne wartości PCIe z mobo
         mobo_slot = (
             MotherboardConnector.objects
-            .filter(motherboard=mobo, connector__category="PCIe")
-            .order_by("-connector__lanes", "-connector__version")
-            .values("connector__lanes", "connector__version")
-            .first()
+                .filter(motherboard=mobo, connector__category="PCIe")
+                .order_by("-connector__lanes", "-connector__version")
+                .values("connector__lanes", "connector__version")
+                .first()
         )
 
         if not mobo_slot: # TODO: płyta główna może nie mieć PCIe?

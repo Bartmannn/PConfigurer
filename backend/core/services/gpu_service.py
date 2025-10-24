@@ -33,9 +33,10 @@ class GPUService:
     def get_compatible_gpus(data: dict[str, int]): # TODO: check ram and adjust CPU!
         qs = GPU.objects.all()
         
-        mobo_pk = data.get("mobo")
         cpu_pk = data.get("cpu")
         psu_pk = data.get("psu")
+        case_pk = data.get("case")
+        mobo_pk = data.get("mobo")
         
         cpu_wattage = 0
         
@@ -64,20 +65,34 @@ class GPUService:
         if cpu_pk:
             cpu_wattage = CPU.objects.filter(pk=cpu_pk).values_list("tdp", flat=True).first()
             
-        if psu_pk: # TODO: pobieraj tylko potrzebne kolumny, zaoszczędzisz na pamięci i czasie
-            psu = PSU.objects.get(pk=psu_pk)
+        if psu_pk:
+            psu_wattage = (
+                PSU.objects.filter(pk=psu_pk)
+                .values_list("wattage", flat=True)
+                .first()
+            )
             
-            psu_gpu_power = list(PSUConnector.objects.filter(
-                psu=psu,
-                connector__category="PCIe Power"
-            ))
-            psu_gpu_power = [psu_conn.connector for psu_conn in psu_gpu_power]
+            psu_gpu_power = (
+                PSUConnector.objects.filter(
+                    psu__pk=psu_pk,
+                    connector__category="PCIe Power"
+                )
+                .values_list("connector", flat=True)
+            )
             
             qs = qs.filter(
                 gpuconnector__connector__category="PCIe Power",
                 gpuconnector__connector__in=psu_gpu_power,
-                tdp__lte=psu.wattage * PSUService.SAFETY_FACTOR - cpu_wattage
+                tdp__lte=psu_wattage * PSUService.SAFETY_FACTOR - cpu_wattage
             )
 
+        if case_pk:
+            case_max_gpu_length = (
+                Case.objects.filter(pk=case_pk)
+                .values_list("max_gpu_length_mm", flat=True)
+                .first()
+            )
+            qs.filter(height_mm__lte=case_max_gpu_length)
+            
         return qs.distinct()
 

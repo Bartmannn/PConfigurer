@@ -26,18 +26,35 @@ class CPUService:
         gpu_wattage = 0
         
         if mobo_pk:
-            mobo = Motherboard.objects.get(pk=mobo_pk)
-            qs = qs.filter(socket=mobo.socket)
+            mobo_socket = (
+                Motherboard.objects.filter(pk=mobo_pk)
+                .values_list("socket", flat=True)
+                .first()
+            )
+            qs = qs.filter(socket=mobo_socket)
             
         if ram_pk:
-            ram = RAM.objects.get(pk=ram_pk)
-            qs = qs.filter(supported_ram__in=[ram.base])
+            ram_base = (
+                RAM.objects.filter(pk=ram_pk)
+                .values_list("base", flat=True)
+                .first()
+            )
+            qs = qs.filter(supported_ram__in=[ram_base])
             
         if gpu_pk:
-            gpu_wattage = GPU.objects.filter(pk=gpu_pk).values_list("tdp", flat=True).first()
+            gpu_wattage = (
+                GPU.objects.filter(pk=gpu_pk)
+                .values_list("tdp", flat=True)
+                .first()
+            )
             
         if psu_pk:
-            psu_wattage = PSU.objects.filter(pk=psu_pk).values_list("wattage", flat=True).first()
+            psu_wattage = (
+                PSU.objects.filter(pk=psu_pk)
+                .values_list("wattage", flat=True)
+                .first()
+            )
+            
             qs = qs.filter(tdp__lte=psu_wattage * PSUService.SAFETY_FACTOR - gpu_wattage)
             
         return qs.distinct()
