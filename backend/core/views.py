@@ -1,12 +1,21 @@
 # core/views.py
 from rest_framework import viewsets, filters
+from .filterset import RAMBaseFilter, MotherboardFormFactorFilter, PSUFormFactorFilter
 from .models import (
     Manufacturer, CPU, GPU, Motherboard, RAM, Storage, PSU, Case, Cooler, Build
+)
+from .models import (
+    PSUFormFactor, MotherboardFormFactor, Connector, RAMBase, Socket
 )
 from .serializer import (
     ManufacturerSerializer, CPUSerializer, GPUSerializer, MotherboardSerializer,
     RAMSerializer, StorageSerializer, PSUSerializer, CaseSerializer,
-    CoolerSerializer, BuildSerializer, BuildDetailSerializer
+    CoolerSerializer, BuildSerializer, BuildDetailSerializer,
+    GPUDetailSerializer, PSUDetailSerializer, MotherboardDetailSerializer
+)
+from .serializer import (
+    PSUFormFactorSerializer, MotherboardFormFactorSerializer,
+    ConnectorSerializer, RAMBaseSerializer, SocketSerializer
 )
 from core.services.motherboard_service import MotherboardService
 from core.services.cpu_service import CPUService
@@ -18,19 +27,45 @@ from core.services.case_service import CaseService
 
 from core import tools
 
-# --- Bazowy ViewSet z wyszukiwaniem i sortowaniem ---
+
+class PSUFormFactorViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = PSUFormFactor.objects.all().order_by("name")
+    serializer_class = PSUFormFactorSerializer
+    filterset_class = PSUFormFactorFilter
+
+
+class MotherboardFormFactorViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = MotherboardFormFactor.objects.all().order_by("name")
+    serializer_class = MotherboardFormFactorSerializer
+    filterset_class = MotherboardFormFactorFilter
+
+
+class ConnectorViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Connector.objects.all().order_by("category")
+    serializer_class = ConnectorSerializer
+
+
+class RAMBaseViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = RAMBase.objects.all().order_by("type", "mts")
+    serializer_class = RAMBaseSerializer
+    filterset_class = RAMBaseFilter
+
+
+class SocketViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Socket.objects.all().order_by("name")
+    serializer_class = SocketSerializer
+
+
 class BaseViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     # Ustal w podklasach: search_fields, ordering_fields
 
 
-# --- Manufacturer ---
 class ManufacturerViewSet(BaseViewSet):
     queryset = Manufacturer.objects.all().order_by("name")
     serializer_class = ManufacturerSerializer
 
 
-# --- CPU ---
 class CPUViewSet(BaseViewSet):
     queryset = CPU.objects.all().order_by("id")
     serializer_class = CPUSerializer
@@ -41,10 +76,9 @@ class CPUViewSet(BaseViewSet):
         )
 
 
-# --- GPU ---
 class GPUViewSet(BaseViewSet):
     queryset = GPU.objects.all().order_by("id")
-    serializer_class = GPUSerializer
+    serializer_class = GPUDetailSerializer
 
     def get_queryset(self):
         return GPUService.get_compatible_gpus(
@@ -52,10 +86,9 @@ class GPUViewSet(BaseViewSet):
         )
 
 
-# --- Motherboard ---
 class MotherboardViewSet(BaseViewSet):
     queryset = Motherboard.objects.all().order_by("id")
-    serializer_class = MotherboardSerializer
+    serializer_class = MotherboardDetailSerializer
 
     def get_queryset(self):
         return MotherboardService.get_compatible_motherboards(
@@ -63,7 +96,6 @@ class MotherboardViewSet(BaseViewSet):
         )
 
 
-# --- RAM ---
 class RAMViewSet(BaseViewSet):
     queryset = RAM.objects.all().order_by("id")
     serializer_class = RAMSerializer
@@ -74,7 +106,6 @@ class RAMViewSet(BaseViewSet):
         )
 
 
-# --- Storage ---
 class StorageViewSet(BaseViewSet):
     queryset = Storage.objects.all().order_by("id")
     serializer_class = StorageSerializer
@@ -85,10 +116,9 @@ class StorageViewSet(BaseViewSet):
         )
 
 
-# --- PSU ---
 class PSUViewSet(BaseViewSet):
     queryset = PSU.objects.all().order_by("id")
-    serializer_class = PSUSerializer
+    serializer_class = PSUDetailSerializer
 
     def get_queryset(self):
         return PSUService.get_compatible_psus(
@@ -96,7 +126,6 @@ class PSUViewSet(BaseViewSet):
         )
 
 
-# --- Case ---
 class CaseViewSet(BaseViewSet):
     queryset = Case.objects.all().order_by("id")
     serializer_class = CaseSerializer
@@ -107,7 +136,6 @@ class CaseViewSet(BaseViewSet):
         )
 
 
-# --- Cooler ---
 class CoolerViewSet(BaseViewSet):
     queryset = Cooler.objects.all().order_by("id")
     serializer_class = CoolerSerializer
@@ -128,14 +156,12 @@ class CoolerViewSet(BaseViewSet):
         return qs
 
 
-# --- Build ---
 class BuildViewSet(BaseViewSet):
     queryset = Build.objects.select_related(
         "cpu", "gpu", "motherboard", "ram", "storage", "psu", "case", "cooler", "user"
     ).all().order_by("-created_at")
 
     def get_serializer_class(self):
-        # Ładny, zagnieżdżony odczyt; prosty serializer przy tworzeniu/edycji
         if self.action in ["list", "retrieve"]:
             return BuildDetailSerializer
         return BuildSerializer

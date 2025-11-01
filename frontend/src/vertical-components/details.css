@@ -1,0 +1,75 @@
+.component-details {
+  background: #1f1f1f;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.3);
+  color: #e5e5e5;
+  overflow-y: auto;
+  max-height: 80vh;
+}
+
+.details-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  padding-bottom: 5px;
+}
+
+.details-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.details-table th {
+  text-align: center;
+  font-weight: 600;
+  padding: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+  color: #bcbcbc;
+}
+
+.details-table td {
+  padding: 10px 15px;
+  border-right: 1px solid rgba(255,255,255,0.15);
+  border-left: 1px solid rgba(255,255,255,0.15);
+}
+
+.details-table tr {
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  transition: background 0.15s ease-in-out;
+}
+
+.details-table tr:nth-child(even) {
+  background: rgba(255,255,255,0.03);
+}
+
+.details-table tr:hover {
+  background: rgba(255,255,255,0.07);
+}
+
+/* kolumna 1 — wyrównana do prawej */
+.details-table td.param {
+  text-align: right;
+  color: #a0a0a0;
+  width: 30%;
+  font-weight: 400;
+  letter-spacing: 0.2px;
+}
+
+/* kolumna 2 — wyrównana do lewej */
+.details-table td.value {
+  text-align: left;
+  font-weight: 500;
+  color: #f5f5f5;
+  font-family: "JetBrains Mono", monospace;
+  width: 40%;
+}
+
+/* kolumna 3 — na razie placeholder na uwagi */
+.details-table td.note {
+  text-align: center;
+  color: #666;
+  width: 30%;
+}

@@ -1,0 +1,150 @@
+.configurator-container {
+  display: flex;
+  width: 200vw;
+  transition: transform 0.6s ease-in-out;
+}
+
+.configurator-container.show-select {
+  transform: translateX(-100vw);
+}
+
+/* Panel zestawienia */
+.summary-view {
+  width: 100vw;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.summary-item {
+  background: #2b2b2b;
+  border-radius: 10px;
+  padding: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.summary-item:hover {
+  background: #3a3a3a;
+}
+
+/* Panel wyboru */
+.select-view {
+  width: 100vw;
+  display: flex;
+  flex-direction: row;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.select-left {
+  flex: 1;
+  border-right: 1px solid #444;
+  padding-right: 20px;
+}
+
+.select-right {
+  flex: 1;
+  padding-left: 20px;
+}
+
+.component-list li {
+  list-style: none;
+  background: #2b2b2b;
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.component-list li:hover {
+  background: #3a3a3a;
+}
+
+.component-details {
+  background: #1f1f1f;
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.component-list-container {
+  position: relative;
+  overflow-y: auto;
+  max-height: 80vh;
+}
+
+.component-none {
+  position: sticky;
+  top: 0;
+  background: #3a3a3a;
+  color: #fff;
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  z-index: 10;
+}
+
+.component-none:hover {
+  background: #555;
+}
+
+.component-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.component-list li {
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 8px;
+}
+
+.component-list li:hover {
+  background: #3a3a3a;
+}
+
+/* 🔒 Globalnie blokujemy scrollowanie */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* zablokowanie przewijania całej strony */
+  height: 100%;
+}
+
+/* 🔒 Blokujemy horyzontalny scroll kontenera */
+.configurator-container {
+  display: flex;
+  width: 200vw;
+  height: 100vh;
+  transition: transform 0.6s ease-in-out;
+  overflow: hidden; /* blokada przewijania wewnętrznego */
+  will-change: transform;
+}
+
+.configurator-container.show-select {
+  transform: translateX(-100vw);
+}
+
+/* 🧱 Każdy widok (podsumowanie / selektor) pełnoekranowy */
+.summary-view,
+.select-view {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
+  flex-shrink: 0; /* zapobiega ściskaniu */
+}
+
+/* 📋 Lewa*
+
+
