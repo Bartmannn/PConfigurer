@@ -13,6 +13,22 @@
   width: 100vw;
   padding: 20px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-content {
+  display: flex;
+  flex-grow: 1;
+  gap: 20px;
+}
+
+.summary-left {
+  flex: 3; /* Takes up 3/4 of the space */
+}
+
+.summary-right {
+  flex: 1; /* Takes up 1/4 of the space */
 }
 
 .summary-grid {
