@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useContext } from "react";
+import { ConfiguratorContext } from "../context/ConfiguratorContext";
 import ComponentList from "./ComponentList";
 import ComponentDetails from "./ComponentDetails";
 
@@ -14,15 +15,16 @@ const CATEGORY_LABELS = {
 
 function SelectView({ category, selected, setSelected, onBack }) {
   const [selectedItem, setSelectedItem] = useState(null);
+  const { updateBuild } = useContext(ConfiguratorContext);
 
-  // aktualizuj stan lokalny po zmianie kategorii lub zewnętrznego wyboru
-  useEffect(() => {
-    setSelectedItem(selected[category] || null);
-  }, [category, selected]);
+  const handlePreviewItem = (item) => {
+    setSelectedItem(item);
+  };
 
   const handleSelectItem = (item) => {
     setSelectedItem(item);
     setSelected((prev) => ({ ...prev, [category]: item }));
+    updateBuild(category, item); // Synchronizuj globalny stan
   };
 
   return (
@@ -34,7 +36,8 @@ function SelectView({ category, selected, setSelected, onBack }) {
           <ComponentList 
             category={category}
             selected={selected}
-            onSelect={handleSelectItem}
+            onPreview={handlePreviewItem}
+            onSelect={handleSelectItem} // Przywrócenie onSelect dla przycisku "Brak"
             selectedItem={selectedItem}
           />
         ) : (
@@ -43,7 +46,12 @@ function SelectView({ category, selected, setSelected, onBack }) {
       </div>
 
       <div className="select-right">
-        <ComponentDetails category={category} selectedItem={selectedItem} />
+        <ComponentDetails 
+          category={category} 
+          selectedItem={selectedItem} 
+          onSelect={handleSelectItem}
+          onBack={onBack} // Przekaż funkcję onBack
+        />
       </div>
     </div>
   );

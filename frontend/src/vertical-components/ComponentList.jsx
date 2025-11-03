@@ -1,24 +1,31 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
-function ComponentList({ category, selected, onSelect, selectedItem }) {
+function ComponentList({ category, selected, onPreview, onSelect, selectedItem }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const map = {
+    cpu: { endpoint: "cpus/", params: ["mobo", "ram", "gpu", "psu"] },
+    gpu: { endpoint: "gpus/", params: ["psu", "cpu", "mobo", "chassis"] },
+    ram: { endpoint: "rams/", params: ["mobo", "cpu"] },
+    mobo: { endpoint: "motherboards/", params: ["cpu", "ram", "gpu", "psu", "mem", "chassis"] },
+    psu: { endpoint: "psus/", params: ["gpu", "cpu", "mobo", "chassis"] },
+    mem: { endpoint: "mems/", params: ["mobo"] },
+    chassis: { endpoint: "cases/", params: ["mobo", "gpu", "psu"] },
+  };
+
+  // Stwórz listę zależności, aby uniknąć niepotrzebnego odświeżania
+  const dependencies = useMemo(() => {
+    if (!category || !map[category]) return [category];
+    const relevantParams = map[category].params.map(p => selected[p]);
+    return [category, ...relevantParams];
+  }, [category, selected]);
 
   useEffect(() => {
     if (!category) return;
 
     setLoading(true);
     const baseUrl = "http://localhost:8000/api/";
-
-    const map = {
-      cpu: { endpoint: "cpus/", params: ["mobo", "ram", "gpu", "psu"] },
-      gpu: { endpoint: "gpus/", params: ["psu", "cpu", "mobo", "chassis"] },
-      ram: { endpoint: "rams/", params: ["mobo", "cpu"] },
-      mobo: { endpoint: "motherboards/", params: ["cpu", "ram", "gpu", "psu", "mem", "chassis"] },
-      psu: { endpoint: "psus/", params: ["gpu", "cpu", "mobo", "chassis"] },
-      mem: { endpoint: "mems/", params: ["mobo"] },
-      chassis: { endpoint: "cases/", params: ["mobo", "gpu", "psu"] },
-    };
 
     const conf = map[category];
     if (!conf) return;
@@ -36,7 +43,7 @@ function ComponentList({ category, selected, onSelect, selectedItem }) {
       .then((data) => setItems(data))
       .catch((err) => console.error("Błąd pobierania:", err))
       .finally(() => setLoading(false));
-  }, [category, selected]);
+  }, dependencies);
 
   if (loading) return <p>Ładowanie danych...</p>;
 
@@ -57,7 +64,7 @@ function ComponentList({ category, selected, onSelect, selectedItem }) {
         {items.map((item) => (
           <li
             key={item.id}
-            onClick={() => onSelect({ id: item.id, name: item.name || item.model })}
+            onClick={() => onPreview({ id: item.id, name: item.name || item.model })}
             style={{
               background:
                 selectedItem?.id === item.id ? "#4f5f4f" : "#2b2b2b",

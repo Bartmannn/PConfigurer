@@ -28,6 +28,7 @@ function ConfiguratorLayout() {
     <div className={`configurator-container ${activePanel === "select" ? "show-select" : ""}`}>
       <SummaryView selected={selected} onSelectCategory={handleSelectCategory} />
       <SelectView
+        key={selectedCategory} // Resetuj stan komponentu przy zmianie kategorii
         category={selectedCategory}
         selected={selected}
         setSelected={setSelected}

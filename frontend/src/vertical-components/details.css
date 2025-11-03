@@ -73,3 +73,32 @@
   color: #666;
   width: 30%;
 }
+
+.select-button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 15px;
+  width: 100%;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+}
+
+.select-button:hover {
+  background-color: #45a049;
+}
+
+.details-table tbody tr.remark-score-good {
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.details-table tbody tr.remark-score-ok {
+  background-color: rgba(255, 193, 7, 0.1);
+}
+
+.details-table tbody tr.remark-score-bad {
+  background-color: rgba(244, 67, 54, 0.1);
+}

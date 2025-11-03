@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import "./details.css";
+import { ConfiguratorContext } from "../context/ConfiguratorContext";
+import { generateRemarksForComponent } from "../services/remarksService";
 
 // Polskie etykiety
 const FIELD_LABELS = {
@@ -83,9 +85,18 @@ const M2M_ENDPOINTS = {
 // prosty cache
 const cache = {};
 
-function ComponentDetails({ category, selectedItem }) {
+function ComponentDetails({ category, selectedItem, onSelect, onBack }) {
   const [details, setDetails] = useState(null);
   const [resolved, setResolved] = useState(null);
+  const [remarks, setRemarks] = useState({});
+  const { currentBuild, updateBuild } = useContext(ConfiguratorContext);
+
+  const handleSelect = () => {
+    if (resolved) {
+      onSelect(resolved);
+      onBack(); // Wróć do podsumowania
+    }
+  };
 
   useEffect(() => {
     if (!category || !selectedItem?.id) {
@@ -150,6 +161,9 @@ function ComponentDetails({ category, selectedItem }) {
         }
 
         setResolved(resolvedData);
+
+        const generatedRemarks = generateRemarksForComponent(resolvedData, category, currentBuild);
+        setRemarks(generatedRemarks);
       } catch (err) {
         console.error("Błąd pobierania szczegółów:", err);
       }
@@ -176,26 +190,32 @@ function ComponentDetails({ category, selectedItem }) {
           </tr>
         </thead>
         <tbody>
-          {visible.map(([key, value]) => (
-            <tr key={key}>
-              <td className="param">{labels[key]}</td>
-              <td className="value">
-                {Array.isArray(value)
-                    ? value
-                        .map(
-                        (v) =>
-                            v.connector
-                            ? `${v.connector.category} ${v.connector.version || ""}`.trim()
-                            : v.name || v.type || ""
-                        )
-                        .join(", ")
-                    : String(value)}
-              </td>
-              <td className="note">—</td>
-            </tr>
-          ))}
+          {visible.map(([key, value]) => {
+            const remarkInfo = remarks[key];
+            const scoreClass = remarkInfo ? `remark-score-${remarkInfo.score}` : 'remark-score-good';
+
+            return (
+              <tr key={key} className={scoreClass}>
+                <td className="param">{labels[key]}</td>
+                <td className="value">
+                  {Array.isArray(value)
+                      ? value
+                          .map(
+                          (v) =>
+                              v.connector
+                              ? `${v.connector.category} ${v.connector.version || ""}`.trim()
+                              : v.name || v.type || ""
+                          )
+                          .join(", ")
+                      : String(value)}
+                </td>
+                <td className="note">{remarkInfo?.text || '—'}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
+      <button onClick={handleSelect} className="select-button">Wybierz ten podzespół</button>
     </div>
   );
 }
