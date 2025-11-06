@@ -77,6 +77,7 @@ class RAM(models.Model):
     modules_count = models.PositiveSmallIntegerField(choices=[(1,1), (2,2),(3,3),(4,4),(6,6),(8,8)])
     module_memory = models.PositiveSmallIntegerField(choices=[(4,4),(8,8),(16,16),(24,24),(32,32),(48,48),(64,64)])
     total_capacity = models.PositiveSmallIntegerField(editable=False)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     
     def save(self, *args, **kwargs):
         self.total_capacity = self.modules_count * self.module_memory
@@ -105,6 +106,7 @@ class CPU(models.Model):
     boost_clock_ghz = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     supported_ram = models.ManyToManyField(RAMBase)
     tdp = models.PositiveSmallIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} {self.base_clock_ghz}GHz"
@@ -115,6 +117,7 @@ class Storage(models.Model):
     name = models.CharField(max_length=120)
     connector = models.ForeignKey(Connector, on_delete=models.PROTECT)
     capacity_gb = models.PositiveIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     
     @property
     def type(self):
@@ -143,6 +146,7 @@ class PSU(models.Model):
     wattage = models.PositiveSmallIntegerField(help_text="Maximum output power (W)")
     connectors = models.ManyToManyField("Connector", through="PSUConnector")
     form_factor = models.ForeignKey(PSUFormFactor, on_delete=models.PROTECT)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} {self.wattage}W"
@@ -166,6 +170,7 @@ class GPU(models.Model):
     # PCIe, HDMI, DisplayPort, PSU
     connectors = models.ManyToManyField(Connector, through="GPUConnector")
     tdp = models.PositiveSmallIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -182,6 +187,7 @@ class Cooler(models.Model):
     name = models.CharField(max_length=120)
     type = models.CharField(max_length=16)
     socket_compat = models.CharField(max_length=120)  # np. "AM4,AM5,LGA1700"
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -200,6 +206,7 @@ class Case(models.Model): # TODO: chłodzenie procka wysokość
     mobo_form_factor_support = models.ManyToManyField(MotherboardFormFactor)
     psu_form_factor_support = models.ManyToManyField(PSUFormFactor)
     max_gpu_length_mm = models.PositiveSmallIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     # max_cooler_height_mm = models.PositiveSmallIntegerField()
 
     def __str__(self):
@@ -223,6 +230,7 @@ class Motherboard(models.Model):
     
     # GPU, Dyski, Chłodzenie, Zasilanie, itp.
     connectors = models.ManyToManyField(Connector, through="MotherboardConnector")
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
     def __str__(self):
         return self.name
