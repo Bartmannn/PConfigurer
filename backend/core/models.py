@@ -78,9 +78,12 @@ class RAM(models.Model):
     module_memory = models.PositiveSmallIntegerField(choices=[(4,4),(8,8),(16,16),(24,24),(32,32),(48,48),(64,64)])
     total_capacity = models.PositiveSmallIntegerField(editable=False)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    cycle_latency = models.PositiveSmallIntegerField() # CL
+    ram_latency_ns = models.DecimalField(max_digits=5, decimal_places=2, editable=False)
     
     def save(self, *args, **kwargs):
         self.total_capacity = self.modules_count * self.module_memory
+        self.ram_latency_ns = self.cycle_latency * 2000 / self.base.mts
         super().save(*args, **kwargs)
 
     def __str__(self):
