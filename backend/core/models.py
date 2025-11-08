@@ -161,22 +161,44 @@ class PSUConnector(models.Model):
     quantity = models.PositiveSmallIntegerField()
 
 
-class GPU(models.Model):
+class GraphicsChip(models.Model):
+    name = models.CharField(max_length=120, unique=True)
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
-    name = models.CharField(max_length=120)
-    vram_type = models.CharField()
-    vram_capacity = models.PositiveIntegerField()
-    length_mm = models.PositiveSmallIntegerField()
-    width_mm = models.PositiveSmallIntegerField()
-    height_mm = models.PositiveSmallIntegerField()
     
-    # PCIe, HDMI, DisplayPort, PSU
-    connectors = models.ManyToManyField(Connector, through="GPUConnector")
-    tdp = models.PositiveSmallIntegerField()
-    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    # Core Specs
+    cuda_cores = models.PositiveIntegerField(null=True, blank=True) # Or stream_processors for AMD
+    base_clock_mhz = models.PositiveIntegerField(null=True, blank=True)
+    boost_clock_mhz = models.PositiveIntegerField(null=True, blank=True)
+    
+    # Memory Specs
+    memory_type = models.CharField(max_length=8, choices=[('GDDR5', 'GDDR5'), ('GDDR6', 'GDDR6'), ('GDDR6X', 'GDDR6X'), ('GDDR7', 'GDDR7')], null=True, blank=True)
+    memory_size_gb = models.PositiveIntegerField()
+    memory_bus_width = models.PositiveSmallIntegerField()
+    
+    # Power Specs
+    total_graphics_power_w = models.PositiveSmallIntegerField(null=True, blank=True)
+    recommended_system_power_w = models.PositiveSmallIntegerField(null=True, blank=True)
 
     def __str__(self):
         return self.name
+
+
+class GPU(models.Model):
+    manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT) # e.g., ASUS, MSI
+    name = models.CharField(max_length=120) # e.g., "TUF GAMING OC"
+    graphics_chip = models.ForeignKey(GraphicsChip, on_delete=models.PROTECT, null=True)
+
+    # Physical properties & Price
+    length_mm = models.PositiveSmallIntegerField()
+    width_mm = models.PositiveSmallIntegerField()
+    height_mm = models.PositiveSmallIntegerField()
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    # Connectors
+    connectors = models.ManyToManyField(Connector, through="GPUConnector")
+
+    def __str__(self):
+        return f"{self.manufacturer} {self.graphics_chip} {self.name} {self.graphics_chip.memory_size_gb}GB {self.graphics_chip.memory_type}"
 
 
 class GPUConnector(models.Model):
@@ -217,7 +239,7 @@ class Case(models.Model): # TODO: chłodzenie procka wysokość
 
 
 class Motherboard(models.Model):
-    #TODO: zasilanie (piny), chipsety, osobny model dla form_factor'a?
+    #TODO: chipsety
     name = models.CharField(max_length=128)
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     socket = models.ForeignKey(Socket, on_delete=models.PROTECT)

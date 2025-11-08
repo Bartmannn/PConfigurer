@@ -3,7 +3,8 @@ from .models import (
     MotherboardConnector, GPUConnector, PSUConnector,
     Manufacturer, Motherboard, Connector, Storage,
     RAMBase, Socket, Cooler, Build, Case, CPU, GPU,
-    RAM, PSU, MotherboardFormFactor, PSUFormFactor 
+    RAM, PSU, MotherboardFormFactor, PSUFormFactor,
+    GraphicsChip
 )
 
 admin.site.register(MotherboardFormFactor)
@@ -59,3 +60,16 @@ class PSUConnectorInline(admin.TabularInline):
 class PSUAdmin(admin.ModelAdmin):
     inlines = [PSUConnectorInline]
     search_fields = ("name",)
+
+
+@admin.register(GraphicsChip)
+class GraphicsChipAdmin(admin.ModelAdmin):
+    list_display = ('name', 'manufacturer')
+    list_filter = ('manufacturer',)
+    search_fields = ('name',)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "manufacturer":
+            gpu_manufacturers = ['NVIDIA', 'AMD', 'Intel']
+            kwargs["queryset"] = Manufacturer.objects.filter(name__in=gpu_manufacturers)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
