@@ -49,7 +49,7 @@ function GPUList({ selected, onChange }) {
               background: selected.gpu === gpu.id ? "linear-gradient(to right, #4f5f4f 0%, transparent 75%)" : "transparent",
             }}
           >
-            {gpu.name}
+            {gpu.display_name}
           </li>
         ))}
       </ul>

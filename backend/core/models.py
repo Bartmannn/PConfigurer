@@ -111,6 +111,11 @@ class CPU(models.Model):
     tdp = models.PositiveSmallIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
+    @property
+    def tier_score(self):
+        # Prosta formuła do oceny wydajności, wagi dobrane eksperymentalnie
+        return (self.cores * 4) + (self.threads * 1) + (float(self.boost_clock_ghz or self.base_clock_ghz) * 2)
+
     def __str__(self):
         return f"{self.name} {self.base_clock_ghz}GHz"
 
@@ -178,6 +183,11 @@ class GraphicsChip(models.Model):
     # Power Specs
     total_graphics_power_w = models.PositiveSmallIntegerField(null=True, blank=True)
     recommended_system_power_w = models.PositiveSmallIntegerField(null=True, blank=True)
+
+    @property
+    def tier_score(self):
+        # Prosta formuła do oceny wydajności, wagi dobrane eksperymentalnie
+        return ((self.cuda_cores or 0) * 0.01) + ((self.boost_clock_mhz or self.base_clock_mhz or 0) * 0.1) + ((self.memory_size_gb or 0) * 1)
 
     def __str__(self):
         return self.name

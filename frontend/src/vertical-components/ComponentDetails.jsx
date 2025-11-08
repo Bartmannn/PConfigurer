@@ -180,7 +180,7 @@ function ComponentDetails({ category, selectedItem, onSelect, onBack }) {
 
   return (
     <div className="component-details">
-      <h3 className="details-title">{resolved.name || resolved.model}</h3>
+      <h3 className="details-title">{resolved.display_name || resolved.name || resolved.model}</h3>
       <table className="details-table">
         <thead>
           <tr>

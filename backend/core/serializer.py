@@ -4,7 +4,7 @@ from rest_framework import serializers
 from .models import (
     Manufacturer, CPU, GPU, Motherboard, RAM, Storage, PSU, Case, Cooler, Build,
     PSUFormFactor, MotherboardFormFactor, Connector, RAMBase, Socket, GPUConnector,
-    MotherboardConnector, PSUConnector
+    MotherboardConnector, PSUConnector, GraphicsChip
 )
 
 class PSUFormFactorSerializer(serializers.ModelSerializer):
@@ -44,24 +44,41 @@ class ManufacturerSerializer(serializers.ModelSerializer):
 
 class CPUSerializer(serializers.ModelSerializer):
     manufacturer_name = serializers.ReadOnlyField(source="manufacturer.name")
+    tier_score = serializers.FloatField(read_only=True)
+
     class Meta:
         model = CPU
         fields = "__all__"
 
+class GraphicsChipSerializer(serializers.ModelSerializer):
+    tier_score = serializers.FloatField(read_only=True)
+
+    class Meta:
+        model = GraphicsChip
+        fields = "__all__"
+
+
 class GPUSerializer(serializers.ModelSerializer):
     manufacturer_name = serializers.ReadOnlyField(source="manufacturer.name")
+    display_name = serializers.CharField(source='__str__', read_only=True)
+    graphics_chip = GraphicsChipSerializer(read_only=True)
+
     class Meta:
         model = GPU
         fields = "__all__"
-        
+
+
 class GPUConnectorSerializer(serializers.ModelSerializer):
     connector = ConnectorSerializer(read_only=True)
     class Meta:
         model = GPUConnector
         fields = ["connector"]
-        
+
+
 class GPUDetailSerializer(serializers.ModelSerializer):
     manufacturer_name = serializers.ReadOnlyField(source="manufacturer.name")
+    display_name = serializers.CharField(source='__str__', read_only=True)
+    graphics_chip = GraphicsChipSerializer(read_only=True)
     connectors = GPUConnectorSerializer(source="gpuconnector_set", many=True, read_only=True)
 
     class Meta:

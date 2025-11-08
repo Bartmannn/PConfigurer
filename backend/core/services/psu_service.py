@@ -15,24 +15,22 @@ class PSUService:
         mobo_pk = data.get("mobo")
         case_pk = data.get("case")
 
-        total_tdp = 0
+        min_wattage = 0
         
-        if cpu_pk:
+        if gpu_pk:
+            # If a GPU is selected, its recommended system power is the primary criterion.
+            gpu = GPU.objects.select_related('graphics_chip').filter(pk=gpu_pk).first()
+            if gpu and gpu.graphics_chip.recommended_system_power_w:
+                min_wattage = gpu.graphics_chip.recommended_system_power_w
+        
+        elif cpu_pk:
+            # If no GPU, estimate based on CPU TDP + a baseline for the rest of the system.
             cpu_tdp = (
                 CPU.objects.filter(pk=cpu_pk)
                 .values_list("tdp", flat=True)
                 .first()
             ) or 0
-            total_tdp += cpu_tdp
-            
-        if gpu_pk:
-            gpu_tdp = (
-                GPU.objects.filter(pk=gpu_pk)
-                .values_list("tdp", flat=True)
-                .first()
-            ) or 0
-            total_tdp += gpu_tdp
-            # qs = PSUService.filter_by_gpu(qs, gpu) # TODO: do poprawy, coś nie działało!
+            min_wattage = cpu_tdp + 250 # Baseline for a system without a powerful GPU
 
         if mobo_pk:
             mobo = Motherboard.objects.get(pk=mobo_pk)
@@ -43,8 +41,7 @@ class PSUService:
             supported_formats = case.psu_form_factor_support.all()
             qs = qs.filter(form_factor__in=supported_formats)
         
-        required_wattage = int(total_tdp * 1.3)
-        qs = qs.filter(wattage__gte=required_wattage)
+        qs = qs.filter(wattage__gte=min_wattage)
 
         return qs.distinct()
     

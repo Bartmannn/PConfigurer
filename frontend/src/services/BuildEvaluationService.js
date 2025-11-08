@@ -21,6 +21,39 @@ const gamingRules = [
     if (build.cpu.cores >= 6) return { score: 7, feedback: '6 rdzeni to solidna podstawa do gier.' };
     return { score: -5, feedback: 'Mniej niż 6 rdzeni może ograniczać wydajność w grach procesorowych.' };
   },
+  // Rule: CPU-GPU Synergy (Bottleneck)
+  (build) => {
+    const cpuScore = build.cpu?.tier_score;
+    const gpuScore = build.gpu?.graphics_chip?.tier_score;
+
+    if (!cpuScore || !gpuScore) {
+      return { score: 0, feedback: "" }; // Cannot evaluate
+    }
+
+    const THRESHOLD = 1.3; // 30% difference
+
+    if (gpuScore > cpuScore * THRESHOLD) {
+      return {
+        score: -8,
+        feedback:
+          "Karta graficzna jest znacznie wydajniejsza niż procesor. W grach procesor może stanowić 'wąskie gardło', ograniczając potencjał GPU.",
+      };
+    }
+
+    if (cpuScore > gpuScore * THRESHOLD) {
+      return {
+        score: 2,
+        feedback:
+          "Procesor ma zapas mocy w stosunku do karty graficznej. Oznacza to, że w grach karta graficzna będzie w pełni wykorzystywana.",
+      };
+    }
+
+    return {
+      score: 5,
+      feedback:
+        "Procesor i karta graficzna są dobrze zbalansowane pod względem wydajności.",
+    };
+  },
 ];
 
 // --- Profile: Office Work ---

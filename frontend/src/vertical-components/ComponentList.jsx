@@ -64,13 +64,13 @@ function ComponentList({ category, selected, onPreview, onSelect, selectedItem }
         {items.map((item) => (
           <li
             key={item.id}
-            onClick={() => onPreview({ id: item.id, name: item.name || item.model })}
+            onClick={() => onPreview(item)}
             style={{
               background:
                 selectedItem?.id === item.id ? "#4f5f4f" : "#2b2b2b",
             }}
           >
-            {item.name || item.model || `Element ${item.id}`}
+            {item.display_name || item.name || item.model || `Element ${item.id}`}
           </li>
         ))}
         {items.length === 0 && !loading && <p>Brak wyników.</p>}
