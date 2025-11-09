@@ -69,8 +69,6 @@ class RAMBase(models.Model):
 
 
 class RAM(models.Model):
-    # TODO: Napięcie, timingi, przelicznik
-    
     name = models.CharField(max_length=120)
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     base = models.ForeignKey(RAMBase, on_delete=models.CASCADE, related_name="variants")
@@ -103,18 +101,35 @@ class CPU(models.Model):
     name = models.CharField(max_length=120)
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     socket = models.ForeignKey(Socket, on_delete=models.PROTECT)
-    cores = models.PositiveIntegerField()
+    p_cores = models.PositiveIntegerField(default=0)
+    e_cores = models.PositiveIntegerField(default=0)
     threads = models.PositiveIntegerField()
     base_clock_ghz = models.DecimalField(max_digits=4, decimal_places=2, null=False, blank=False)
     boost_clock_ghz = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     supported_ram = models.ManyToManyField(RAMBase)
     tdp = models.PositiveSmallIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    cache_mb = models.PositiveIntegerField(null=True, blank=True, help_text="Total cache size in MB")
+    integrated_gpu = models.BooleanField(default=False)
 
     @property
     def tier_score(self):
-        # Prosta formuła do oceny wydajności, wagi dobrane eksperymentalnie
-        return (self.cores * 4) + (self.threads * 1) + (float(self.boost_clock_ghz or self.base_clock_ghz) * 2)
+        MAX_CPU_SCORE = 125
+
+        # Raw score calculation now includes p-cores, e-cores, and cache
+        raw_score = (self.p_cores * 4) + \
+                    (self.e_cores * 1) + \
+                    (self.threads * 1) + \
+                    ((self.cache_mb or 0) * 0.5) + \
+                    (float(self.boost_clock_ghz or self.base_clock_ghz) * 2)
+        
+        normalized_score = 0
+        if raw_score > MAX_CPU_SCORE:
+            normalized_score = 10
+        else:
+            normalized_score = (raw_score / MAX_CPU_SCORE) * 10
+        
+        return round(normalized_score)
 
     def __str__(self):
         return f"{self.name} {self.base_clock_ghz}GHz"
@@ -171,13 +186,13 @@ class GraphicsChip(models.Model):
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     
     # Core Specs
-    cuda_cores = models.PositiveIntegerField(null=True, blank=True) # Or stream_processors for AMD
-    base_clock_mhz = models.PositiveIntegerField(null=True, blank=True)
-    boost_clock_mhz = models.PositiveIntegerField(null=True, blank=True)
+    cuda_cores = models.PositiveSmallIntegerField(default=0) # Or stream_processors for AMD
+    base_clock_mhz = models.PositiveSmallIntegerField(null=True, blank=True)
+    boost_clock_mhz = models.PositiveSmallIntegerField(null=True, blank=True)
     
     # Memory Specs
     memory_type = models.CharField(max_length=8, choices=[('GDDR5', 'GDDR5'), ('GDDR6', 'GDDR6'), ('GDDR6X', 'GDDR6X'), ('GDDR7', 'GDDR7')], null=True, blank=True)
-    memory_size_gb = models.PositiveIntegerField()
+    memory_size_gb = models.PositiveSmallIntegerField()
     memory_bus_width = models.PositiveSmallIntegerField()
     
     # Power Specs
@@ -186,8 +201,21 @@ class GraphicsChip(models.Model):
 
     @property
     def tier_score(self):
-        # Prosta formuła do oceny wydajności, wagi dobrane eksperymentalnie
-        return ((self.cuda_cores or 0) * 0.01) + ((self.boost_clock_mhz or self.base_clock_mhz or 0) * 0.1) + ((self.memory_size_gb or 0) * 1)
+        MAX_GPU_SCORE = 314 + 241
+
+        raw_score = (
+            (self.cuda_cores or 0) * 0.01 +
+            (self.boost_clock_mhz or self.base_clock_mhz or 0) * 0.1 +
+            (self.memory_size_gb or 0) * 1
+        )
+        
+        normalized_score = 0
+        if raw_score >= MAX_GPU_SCORE:
+            normalized_score = 10
+        else:
+            normalized_score = (raw_score / MAX_GPU_SCORE) * 10
+        
+        return round(normalized_score)
 
     def __str__(self):
         return self.name
