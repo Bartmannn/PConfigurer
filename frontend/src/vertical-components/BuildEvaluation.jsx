@@ -11,7 +11,7 @@ function BuildEvaluation() {
     const results = evaluateBuild(currentBuild);
     setEvaluation(results);
   }, [currentBuild]);
-
+  
   if (!evaluation.length || !evaluation[0]) {
     return null; // Nie pokazuj nic, jeśli nie ma oceny
   }
@@ -23,7 +23,7 @@ function BuildEvaluation() {
       <h4>Sugerowane przeznaczenie</h4>
       <p className="top-profile-name">{topProfile.name}</p>
       <ul className="feedback-list">
-        {topProfile.feedback.slice(0, 3).map((fb, index) => (
+        {topProfile.feedback.filter(fb => fb).map((fb, index) => (
           <li key={index}>{fb}</li>
         ))}
       </ul>

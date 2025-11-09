@@ -113,6 +113,8 @@ class RAMSerializer(serializers.ModelSerializer):
 
 class StorageSerializer(serializers.ModelSerializer):
     manufacturer_name = serializers.ReadOnlyField(source="manufacturer.name")
+    type = serializers.ReadOnlyField()
+    
     class Meta:
         model = Storage
         fields = "__all__"

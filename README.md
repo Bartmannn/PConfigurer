@@ -1,7 +1,7 @@
 # PC Configurator 🖥️
 
 Projekt inżynierski: aplikacja do konfiguracji zestawów komputerowych.  
-Backend oparty na **Django** + **Django REST Framework**, frontend planowany w **React** (lub React Native).
+Backend oparty na **Django** + **Django REST Framework**, frontend planowany w **React**.
 
 ## Funkcje (na start)
 - Modele dla podzespołów komputerowych (CPU, GPU, RAM, płyta główna, itp.).
@@ -18,11 +18,6 @@ Backend oparty na **Django** + **Django REST Framework**, frontend planowany w *
 - Django 5.x
 - Django REST Framework
 - SQLite (domyślnie) lub PostgreSQL (zalecane)
-
----
-
-## Dane
-Dane o podzespołach zostały zaczerpnięte z repozytorium https://github.com/docyx/pc-part-dataset.git
 
 ---
 

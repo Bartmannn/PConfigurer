@@ -10,7 +10,7 @@ export const ConfiguratorProvider = ({ children }) => {
     gpu: null,
     psu: null,
     case: null,
-    storage: [],
+    mem: null,
   });
 
   const updateBuild = (componentType, component) => {

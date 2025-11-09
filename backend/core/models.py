@@ -150,7 +150,7 @@ class Storage(models.Model):
             case "M.2 SATA" | "SATA":
                 return "SATA"
             case _:
-                return "Unknown"
+                return "HDD"
 
     def __str__(self):
         return f"{self.manufacturer} {self.name} {self.capacity_gb}GB {self.connector}"
