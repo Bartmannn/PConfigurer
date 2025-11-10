@@ -51,7 +51,7 @@ const gamingRules = [
   (build) => { // gry - GPU
     if (!build.gpu) return { score: 0, feedback: 'Wybierz kartę grafiki.' }
 
-    const gpuScore = build.gpu?.graphics_chip?.tier_score;
+    const gpuScore = build.gpu?.tier_score;
     if (gpuScore <= 2) return { score: 0, feedback: 'Wybrana karta grafiki może okazać się za słaba.' }
     if (gpuScore == 3 || gpuScore >= 8) return { score: 5, feedback: '' }
     if (gpuScore <= 5 || gpuScore == 7) return { score: 10, feedback: '' }
@@ -88,7 +88,7 @@ const gamingRules = [
     if (!build.cpu || !build.gpu) return { score: 0, feedback: '' };
 
     const cpuTier = build.cpu?.tier_score;
-    const gpuTier = build.gpu?.graphics_chip?.tier_score;
+    const gpuTier = build.gpu?.tier_score;
     const diff = Math.abs(cpuTier - gpuTier);
 
     if (diff >= 5 && cpuTier > gpuTier) return { score: -15, feedback: 'Wybrany procesor jest zbyt potężny dla tej karty grafiki!' };
@@ -122,7 +122,7 @@ const professionalRules = [
   (build) => { // profesjonalia - GPU
     if (!build.gpu) return { score: 0, feedback: 'Wybierz kartę graficzną.' };
 
-    const gpuScore = build.gpu?.graphics_chip?.tier_score;
+    const gpuScore = build.gpu?.tier_score;
     if (gpuScore <= 2) return { score: -5, feedback: 'Wybrana karta grafiki jest za słaba.' }
     if (gpuScore <= 4) return { score: 0, feedback: 'Wybrana karta graficzna może okazać się zbyt słaba.' }
     if (gpuScore <= 6) return { score: 5, feedback: '' }
@@ -157,7 +157,7 @@ const professionalRules = [
     if (!build.cpu || !build.gpu) return { score: 0, feedback: '' };
 
     const cpuTier = build.cpu?.tier_score;
-    const gpuTier = build.gpu?.graphics_chip?.tier_score;
+    const gpuTier = build.gpu?.tier_score;
     const diff = Math.abs(cpuTier - gpuTier);
 
     if (diff >= 5 && cpuTier > gpuTier) return { score: -15, feedback: 'Wybrany procesor jest zbyt potężny dla tej karty grafiki!' };

@@ -58,7 +58,7 @@ class CPUDetailSerializer(serializers.ModelSerializer):
         model = CPU
         fields = [
             'id', 'full_name', 'short_name', 'manufacturer_name', 'socket_name', 'cores_info', 'threads_info',
-            'clock_speed_info', 'cache_info', 'integrated_graphics', 'ram_support_info',
+            'clock_speed_info', 'cache_info', 'integrated_gpu', 'ram_support_info',
             'tdp', 'price', 'tier_score'
         ]
 
@@ -106,7 +106,7 @@ class RAMDetailSerializer(serializers.ModelSerializer):
         model = RAM
         fields = [
             'id', 'full_name', 'short_name', 'manufacturer_name', 'kit_info', 'capacity_info',
-            'type_info', 'latency_info', 'price'
+            'type_info', 'latency_info', 'price', 'total_capacity'
         ]
 
 class StorageSerializer(serializers.ModelSerializer):
@@ -119,7 +119,7 @@ class StorageDetailSerializer(serializers.ModelSerializer):
         model = Storage
         fields = [
             'id', 'full_name', 'short_name', 'manufacturer_name', 'type_info', 'capacity_info',
-            'interface_info', 'price'
+            'interface_info', 'price', 'type', 'capacity_gb'
         ]
 
 class PSUSerializer(serializers.ModelSerializer):

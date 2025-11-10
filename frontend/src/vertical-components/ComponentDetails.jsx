@@ -150,22 +150,26 @@ function ComponentDetails({ category, selectedItem, onSelect, onBack }) {
             const remarkInfo = remarks[key];
             const scoreClass = remarkInfo ? `remark-score-${remarkInfo.score}` : 'remark-score-good';
             
-            // Handle different value types for display
-            let displayValue;
-            if (value === null) {
-              displayValue = '-';
-            } else if (typeof value === 'boolean') {
-              displayValue = value ? 'Tak' : 'Nie';
-            } else if (key === 'price') {
-              displayValue = `${value} zł`;
-            } else {
-              displayValue = String(value);
-            }
-
             return (
               <tr key={key} className={scoreClass}>
                 <td className="param">{labels[key]}</td>
-                <td className="value">{displayValue}</td>
+                <td className="value">
+                  {(() => {
+                    if (Array.isArray(value)) {
+                      return value.map((item, index) => <div key={index}>{item}</div>);
+                    }
+                    if (value === null) {
+                      return '-';
+                    }
+                    if (typeof value === 'boolean') {
+                      return value ? 'Tak' : 'Nie';
+                    }
+                    if (key === 'price' && value) {
+                      return `${value} zł`;
+                    }
+                    return String(value);
+                  })()}
+                </td>
                 <td className="note">{remarkInfo?.text || '—'}</td>
               </tr>
             );

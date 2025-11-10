@@ -177,7 +177,7 @@ class CPU(models.Model):
 
     @property
     def ram_support_info(self):
-        return ", ".join([str(ram) for ram in self.supported_ram.all()])
+        return [str(ram) for ram in self.supported_ram.all()]
 
     @property
     def tier_score(self):
@@ -269,7 +269,7 @@ class PSU(models.Model):
 
     @property
     def connectors_info(self):
-        return ", ".join([f"{item.quantity}x {item.connector}" for item in self.psuconnector_set.all()])
+        return [f"{item.quantity}x {item.connector}" for item in self.psuconnector_set.all()]
 
     def __str__(self):
         return self.full_name
@@ -353,7 +353,7 @@ class GPU(models.Model):
 
     @property
     def ports_info(self):
-        return ", ".join([f"{item.quantity}x {item.connector}" for item in self.gpuconnector_set.all()])
+        return [f"{item.quantity}x {item.connector}" for item in self.gpuconnector_set.all()]
 
     @property
     def chip_manufacturer_name(self):
@@ -448,7 +448,7 @@ class Case(models.Model):
 
     @property
     def mobo_support_info(self):
-        return ", ".join([str(ff) for ff in self.mobo_form_factor_support.all()])
+        return [str(ff) for ff in self.mobo_form_factor_support.all()]
 
     @property
     def max_gpu_length_info(self):
@@ -495,7 +495,7 @@ class Motherboard(models.Model):
 
     @property
     def supported_ram_types(self):
-        return ", ".join(self.supported_ram.values_list('type', flat=True).distinct())
+        return list(self.supported_ram.values_list('type', flat=True).distinct())
 
     @property
     def max_ram_capacity_info(self):
@@ -503,15 +503,15 @@ class Motherboard(models.Model):
 
     @property
     def pcie_slots_info(self):
-        return ", ".join([f"{item.quantity}x {item.connector}" for item in self.motherboardconnector_set.filter(connector__category="PCIe")])
+        return [f"{item.quantity}x {item.connector}" for item in self.motherboardconnector_set.filter(connector__category="PCIe")]
 
     @property
     def m2_slots_info(self):
-        return ", ".join([f"{item.quantity}x {item.connector}" for item in self.motherboardconnector_set.filter(connector__category__startswith="M.2")])
+        return [f"{item.quantity}x {item.connector}" for item in self.motherboardconnector_set.filter(connector__category__startswith="M.2")]
 
     @property
     def sata_ports_info(self):
-        return ", ".join([f"{item.quantity}x {item.connector}" for item in self.motherboardconnector_set.filter(connector__category="SATA")])
+        return [f"{item.quantity}x {item.connector}" for item in self.motherboardconnector_set.filter(connector__category="SATA")]
 
     def __str__(self):
         return self.full_name

@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { ConfiguratorContext } from "../context/ConfiguratorContext";
 import ComponentList from "./ComponentList";
 import ComponentDetails from "./ComponentDetails";
@@ -16,6 +16,16 @@ const CATEGORY_LABELS = {
 function SelectView({ category, selected, setSelected, onBack }) {
   const [selectedItem, setSelectedItem] = useState(null);
   const { updateBuild } = useContext(ConfiguratorContext);
+
+  useEffect(() => {
+    // When the category changes, initialize the previewed item
+    // to the one already selected in the build.
+    if (category && selected[category]) {
+      setSelectedItem(selected[category]);
+    } else {
+      setSelectedItem(null);
+    }
+  }, [category, selected]);
 
   const handlePreviewItem = (item) => {
     setSelectedItem(item);
