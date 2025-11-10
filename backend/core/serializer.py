@@ -12,15 +12,18 @@ class PSUFormFactorSerializer(serializers.ModelSerializer):
         model = PSUFormFactor
         fields = "__all__"
 
+
 class MotherboardFormFactorSerializer(serializers.ModelSerializer):
     class Meta:
         model = MotherboardFormFactor
         fields = "__all__"
 
+
 class ConnectorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Connector
         fields = ["id", "category", "version", "lanes", "speed", "extra", "is_power"]
+
 
 class RAMBaseSerializer(serializers.ModelSerializer):
     display_name = serializers.SerializerMethodField()
@@ -32,135 +35,140 @@ class RAMBaseSerializer(serializers.ModelSerializer):
     def get_display_name(self, obj):
         return f"{obj.type}-{obj.mts}"
 
+
 class SocketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Socket
         fields = "__all__"
+
 
 class ManufacturerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Manufacturer
         fields = "__all__"
 
-class CPUSerializer(serializers.ModelSerializer):
-    manufacturer_name = serializers.ReadOnlyField(source="manufacturer.name")
-    tier_score = serializers.FloatField(read_only=True)
 
+class CPUSerializer(serializers.ModelSerializer):
     class Meta:
         model = CPU
-        fields = "__all__"
+        fields = ['id', 'short_name']
+
+class CPUDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CPU
+        fields = [
+            'id', 'full_name', 'short_name', 'manufacturer_name', 'socket_name', 'cores_info', 'threads_info',
+            'clock_speed_info', 'cache_info', 'integrated_graphics', 'ram_support_info',
+            'tdp', 'price', 'tier_score'
+        ]
 
 class GraphicsChipSerializer(serializers.ModelSerializer):
     tier_score = serializers.FloatField(read_only=True)
-
     class Meta:
         model = GraphicsChip
         fields = "__all__"
 
-
 class GPUSerializer(serializers.ModelSerializer):
-    manufacturer_name = serializers.ReadOnlyField(source="manufacturer.name")
-    display_name = serializers.CharField(source='__str__', read_only=True)
-    graphics_chip = GraphicsChipSerializer(read_only=True)
-
     class Meta:
         model = GPU
-        fields = "__all__"
-
-
-class GPUConnectorSerializer(serializers.ModelSerializer):
-    connector = ConnectorSerializer(read_only=True)
-    class Meta:
-        model = GPUConnector
-        fields = ["connector"]
-
+        fields = ['id', 'short_name']
 
 class GPUDetailSerializer(serializers.ModelSerializer):
-    manufacturer_name = serializers.ReadOnlyField(source="manufacturer.name")
-    display_name = serializers.CharField(source='__str__', read_only=True)
-    graphics_chip = GraphicsChipSerializer(read_only=True)
-    connectors = GPUConnectorSerializer(source="gpuconnector_set", many=True, read_only=True)
-
     class Meta:
         model = GPU
-        fields = "__all__"
+        fields = [
+            'id', 'full_name', 'short_name', 'manufacturer_name', 'chip_name', 'chip_manufacturer_name',
+            'vram_info', 'clock_speed_info', 'bus_width_info', 'dimensions_info',
+            'ports_info', 'price', 'tier_score'
+        ]
 
 class MotherboardSerializer(serializers.ModelSerializer):
-    manufacturer_name = serializers.ReadOnlyField(source="manufacturer.name")
     class Meta:
         model = Motherboard
-        fields = "__all__"
-        
-class MotherboardConnectorSerializer(serializers.ModelSerializer):
-    connector = ConnectorSerializer(read_only=True)
-    class Meta:
-        model = MotherboardConnector
-        fields = ["connector"]
+        fields = ['id', 'short_name']
         
 class MotherboardDetailSerializer(serializers.ModelSerializer):
-    manufacturer_name = serializers.ReadOnlyField(source="manufacturer.name")
-    connectors = MotherboardConnectorSerializer(source="motherboardconnector_set", many=True, read_only=True)
-
     class Meta:
         model = Motherboard
-        fields = "__all__"
+        fields = [
+            'id', 'full_name', 'short_name', 'manufacturer_name', 'socket_name', 'form_factor_name',
+            'dimm_slots_count', 'supported_ram_types', 'max_ram_capacity_info',
+            'pcie_slots_info', 'm2_slots_info', 'sata_ports_info', 'price'
+        ]
 
 class RAMSerializer(serializers.ModelSerializer):
-    manufacturer_name = serializers.ReadOnlyField(source="manufacturer.name")
     class Meta:
         model = RAM
-        fields = "__all__"
+        fields = ['id', 'short_name']
+
+class RAMDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RAM
+        fields = [
+            'id', 'full_name', 'short_name', 'manufacturer_name', 'kit_info', 'capacity_info',
+            'type_info', 'latency_info', 'price'
+        ]
 
 class StorageSerializer(serializers.ModelSerializer):
-    manufacturer_name = serializers.ReadOnlyField(source="manufacturer.name")
-    type = serializers.ReadOnlyField()
-    
     class Meta:
         model = Storage
-        fields = "__all__"
+        fields = ['id', 'short_name']
+
+class StorageDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Storage
+        fields = [
+            'id', 'full_name', 'short_name', 'manufacturer_name', 'type_info', 'capacity_info',
+            'interface_info', 'price'
+        ]
 
 class PSUSerializer(serializers.ModelSerializer):
-    manufacturer_name = serializers.ReadOnlyField(source="manufacturer.name")
     class Meta:
         model = PSU
-        fields = "__all__"
-        
-class PSUConnectorSerializer(serializers.ModelSerializer):
-    connector = ConnectorSerializer(read_only=True)
-    class Meta:
-        model = PSUConnector
-        fields = ["connector"]
+        fields = ['id', 'short_name']
         
 class PSUDetailSerializer(serializers.ModelSerializer):
-    manufacturer_name = serializers.ReadOnlyField(source="manufacturer.name")
-    connectors = PSUConnectorSerializer(source="psuconnector_set", many=True, read_only=True)
-
     class Meta:
         model = PSU
-        fields = "__all__"
+        fields = [
+            'id', 'full_name', 'short_name', 'manufacturer_name', 'wattage_info', 'form_factor_name',
+            'connectors_info', 'price'
+        ]
 
 class CaseSerializer(serializers.ModelSerializer):
-    manufacturer_name = serializers.ReadOnlyField(source="manufacturer.name")
     class Meta:
         model = Case
-        fields = "__all__"
+        fields = ['id', 'short_name']
+
+class CaseDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Case
+        fields = [
+            'id', 'full_name', 'short_name', 'manufacturer_name', 'mobo_support_info',
+            'max_gpu_length_info', 'price'
+        ]
 
 class CoolerSerializer(serializers.ModelSerializer):
-    manufacturer_name = serializers.ReadOnlyField(source="manufacturer.name")
     class Meta:
         model = Cooler
-        fields = "__all__"
+        fields = ['id', 'short_name']
 
-# Build – wersja prosta (ID-ki części + pola tylko do odczytu z nazwami)
+class CoolerDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cooler
+        fields = [
+            'id', 'full_name', 'short_name', 'manufacturer_name', 'type_info', 'supported_sockets_info', 'price'
+        ]
+
 class BuildSerializer(serializers.ModelSerializer):
-    cpu_name = serializers.ReadOnlyField(source="cpu.name")
-    gpu_name = serializers.ReadOnlyField(source="gpu.name")
-    motherboard_name = serializers.ReadOnlyField(source="motherboard.name")
-    ram_name = serializers.ReadOnlyField(source="ram.name")
-    storage_name = serializers.ReadOnlyField(source="storage.name")
-    psu_name = serializers.ReadOnlyField(source="psu.name")
-    case_name = serializers.ReadOnlyField(source="case.name")
-    cooler_name = serializers.ReadOnlyField(source="cooler.name")
+    cpu_name = serializers.ReadOnlyField(source="cpu.short_name")
+    gpu_name = serializers.ReadOnlyField(source="gpu.short_name")
+    motherboard_name = serializers.ReadOnlyField(source="motherboard.short_name")
+    ram_name = serializers.ReadOnlyField(source="ram.short_name")
+    storage_name = serializers.ReadOnlyField(source="storage.short_name")
+    psu_name = serializers.ReadOnlyField(source="psu.short_name")
+    case_name = serializers.ReadOnlyField(source="case.short_name")
+    cooler_name = serializers.ReadOnlyField(source="cooler.short_name")
 
     class Meta:
         model = Build
@@ -179,3 +187,4 @@ class BuildDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Build
         fields = "__all__"
+

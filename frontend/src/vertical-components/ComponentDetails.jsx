@@ -3,97 +3,90 @@ import "./details.css";
 import { ConfiguratorContext } from "../context/ConfiguratorContext";
 import { generateRemarksForComponent } from "../services/remarksService";
 
-// Polskie etykiety
+// Polskie etykiety dla nowych, spłaszczonych pól
 const FIELD_LABELS = {
   cpu: {
     name: "Model",
     manufacturer_name: "Producent",
-    socket: "Gniazdo",
-    cores: "Rdzenie",
-    threads: "Wątki",
-    base_clock_ghz: "Taktowanie bazowe (GHz)",
-    boost_clock_ghz: "Taktowanie boost (GHz)",
+    socket_name: "Gniazdo",
+    cores_info: "Rdzenie",
+    threads_info: "Wątki",
+    clock_speed_info: "Taktowanie",
+    cache_info: "Pamięć cache",
+    integrated_graphics: "Zintegrowana grafika",
+    ram_support_info: "Wspierana pamięć RAM",
     tdp: "TDP [W]",
-    supported_ram: "Obsługiwana pamięć RAM",
+    price: "Cena [zł]",
+    tier_score: "Ocena wydajności",
   },
   gpu: {
     name: "Model",
     manufacturer_name: "Producent",
-    vram_type: "Typ VRAM",
-    vram_capacity: "Pamięć VRAM [GB]",
-    length_mm: "Długość [mm]",
-    width_mm: "Szerokość [mm]",
-    height_mm: "Wysokość [mm]",
-    tdp: "TDP [W]",
-    connectors: "Złącza",
+    chip_name: "Chip graficzny",
+    chip_manufacturer_name: "Producent chipu",
+    vram_info: "Pamięć VRAM",
+    clock_speed_info: "Taktowanie rdzenia",
+    bus_width_info: "Szyna pamięci",
+    dimensions_info: "Wymiary",
+    ports_info: "Złącza wideo",
+    price: "Cena [zł]",
+    tier_score: "Ocena wydajności",
   },
   ram: {
     name: "Model",
     manufacturer_name: "Producent",
-    base: "Standard RAM",
-    modules_count: "Liczba modułów",
-    module_memory: "Pojemność modułu [GB]",
-    total_capacity: "Całkowita pojemność [GB]",
+    kit_info: "Zestaw",
+    capacity_info: "Pojemność",
+    type_info: "Typ",
+    latency_info: "Opóźnienie",
+    price: "Cena [zł]",
   },
   mobo: {
     name: "Model",
     manufacturer_name: "Producent",
-    socket: "Gniazdo procesora",
-    form_factor: "Format płyty",
-    supported_ram: "Obsługiwana pamięć RAM",
-    max_ram_capacity: "Maksymalna pamięć RAM [GB]",
-    dimm_slots: "Liczba slotów DIMM",
-    connectors: "Złącza",
+    socket_name: "Gniazdo procesora",
+    form_factor_name: "Format",
+    dimm_slots_count: "Sloty RAM",
+    supported_ram_types: "Wspierane typy RAM",
+    max_ram_capacity_info: "Maks. pojemność RAM",
+    pcie_slots_info: "Sloty PCIe",
+    m2_slots_info: "Sloty M.2",
+    sata_ports_info: "Porty SATA",
+    price: "Cena [zł]",
   },
   psu: {
     name: "Model",
     manufacturer_name: "Producent",
-    wattage: "Moc maksymalna [W]",
-    form_factor: "Format zasilacza",
-    connectors: "Złącza",
+    wattage_info: "Moc",
+    form_factor_name: "Format",
+    connectors_info: "Złącza",
+    price: "Cena [zł]",
   },
-  mem: {
+  mem: { // 'mem' is used for storage
     name: "Model",
     manufacturer_name: "Producent",
-    connector: "Złącze",
-    capacity_gb: "Pojemność [GB]",
-    type: "Typ dysku",
+    type_info: "Typ dysku",
+    capacity_info: "Pojemność",
+    interface_info: "Interfejs",
+    price: "Cena [zł]",
   },
-  chassis: {
+  chassis: { // 'chassis' is used for case
     name: "Model",
     manufacturer_name: "Producent",
-    mobo_form_factor_support: "Obsługiwane formaty płyt",
-    psu_form_factor_support: "Obsługiwane formaty zasilaczy",
-    max_gpu_length_mm: "Maks. długość GPU [mm]",
+    mobo_support_info: "Wspierane formaty płyt",
+    max_gpu_length_info: "Maks. długość GPU",
+    price: "Cena [zł]",
   },
 };
-
-// mapy endpointów
-const FK_ENDPOINTS = {
-  form_factor: "psuformfactors",
-  socket: "sockets",
-  connector: "connectors",
-  base: "rambases",
-};
-
-const M2M_ENDPOINTS = {
-  supported_ram: "rambases",
-  mobo_form_factor_support: "motherboardformfactors",
-  psu_form_factor_support: "psuformfactors",
-};
-
-// prosty cache
-const cache = {};
 
 function ComponentDetails({ category, selectedItem, onSelect, onBack }) {
   const [details, setDetails] = useState(null);
-  const [resolved, setResolved] = useState(null);
   const [remarks, setRemarks] = useState({});
-  const { currentBuild, updateBuild } = useContext(ConfiguratorContext);
+  const { currentBuild } = useContext(ConfiguratorContext);
 
   const handleSelect = () => {
-    if (resolved) {
-      onSelect(resolved);
+    if (details) {
+      onSelect(details);
       onBack(); // Wróć do podsumowania
     }
   };
@@ -101,7 +94,6 @@ function ComponentDetails({ category, selectedItem, onSelect, onBack }) {
   useEffect(() => {
     if (!category || !selectedItem?.id) {
       setDetails(null);
-      setResolved(null);
       return;
     }
 
@@ -120,49 +112,13 @@ function ComponentDetails({ category, selectedItem, onSelect, onBack }) {
 
     const fetchData = async () => {
       try {
+        // Fetch data from the detail endpoint, which now returns flattened data
         const res = await fetch(`http://localhost:8000/api/${endpoint}/${selectedItem.id}/`);
         const data = await res.json();
         setDetails(data);
 
-        const resolvedData = { ...data };
-
-        // --- obsługa ForeignKey ---
-        const fkPromises = Object.entries(data)
-          .filter(([key, val]) => FK_ENDPOINTS[key] && typeof val === "number")
-          .map(async ([key, id]) => {
-            const cacheKey = `${FK_ENDPOINTS[key]}_${id}`;
-            if (cache[cacheKey]) return [key, cache[cacheKey]];
-            const r = await fetch(`http://localhost:8000/api/${FK_ENDPOINTS[key]}/${id}/`);
-            const json = await r.json();
-            const name = json.name || json.type || json.category || id;
-            cache[cacheKey] = name;
-            return [key, name];
-          });
-
-        // --- obsługa ManyToMany ---
-        const m2mPromises = Object.entries(data)
-          .filter(([key, val]) => M2M_ENDPOINTS[key] && Array.isArray(val) && val.length)
-          .map(async ([key, ids]) => {
-            const endpoint = M2M_ENDPOINTS[key];
-            const query = `id__in=${ids.join(",")}`;
-            const r = await fetch(`http://localhost:8000/api/${endpoint}/?${query}`);
-            const json = await r.json();
-            const names = [...new Set(json.map((obj) => {
-            if (obj.type && obj.mts) return `${obj.type}-${obj.mts}`;
-            return obj.name || obj.type || obj.category || "";
-            }))].join(", ");
-            return [key, names];
-          });
-
-        // --- scalanie ---
-        const allResolved = await Promise.all([...fkPromises, ...m2mPromises]);
-        for (const [key, val] of allResolved) {
-          resolvedData[key] = val;
-        }
-
-        setResolved(resolvedData);
-
-        const generatedRemarks = generateRemarksForComponent(resolvedData, category, currentBuild);
+        // Generate remarks based on the new flattened data
+        const generatedRemarks = generateRemarksForComponent(data, category, currentBuild);
         setRemarks(generatedRemarks);
       } catch (err) {
         console.error("Błąd pobierania szczegółów:", err);
@@ -170,17 +126,17 @@ function ComponentDetails({ category, selectedItem, onSelect, onBack }) {
     };
 
     fetchData();
-  }, [category, selectedItem]);
+  }, [category, selectedItem, currentBuild]);
 
-  if (!resolved)
+  if (!details)
     return <div className="component-details">Ładowanie danych...</div>;
 
   const labels = FIELD_LABELS[category] || {};
-  const visible = Object.entries(resolved).filter(([k]) => labels[k]);
+  const visible = Object.entries(details).filter(([k]) => labels[k]);
 
   return (
     <div className="component-details">
-      <h3 className="details-title">{resolved.display_name || resolved.name || resolved.model}</h3>
+      <h3 className="details-title">{details.full_name}</h3>
       <table className="details-table">
         <thead>
           <tr>
@@ -193,22 +149,23 @@ function ComponentDetails({ category, selectedItem, onSelect, onBack }) {
           {visible.map(([key, value]) => {
             const remarkInfo = remarks[key];
             const scoreClass = remarkInfo ? `remark-score-${remarkInfo.score}` : 'remark-score-good';
+            
+            // Handle different value types for display
+            let displayValue;
+            if (value === null) {
+              displayValue = '-';
+            } else if (typeof value === 'boolean') {
+              displayValue = value ? 'Tak' : 'Nie';
+            } else if (key === 'price') {
+              displayValue = `${value} zł`;
+            } else {
+              displayValue = String(value);
+            }
 
             return (
               <tr key={key} className={scoreClass}>
                 <td className="param">{labels[key]}</td>
-                <td className="value">
-                  {Array.isArray(value)
-                      ? value
-                          .map(
-                          (v) =>
-                              v.connector
-                              ? `${v.connector.category} ${v.connector.version || ""}`.trim()
-                              : v.name || v.type || ""
-                          )
-                          .join(", ")
-                      : String(value)}
-                </td>
+                <td className="value">{displayValue}</td>
                 <td className="note">{remarkInfo?.text || '—'}</td>
               </tr>
             );
@@ -221,9 +178,3 @@ function ComponentDetails({ category, selectedItem, onSelect, onBack }) {
 }
 
 export default ComponentDetails;
-
-
-//TODO:
-    // PSU - wartość "Obslugiwane formaty zasilaczy" -> "format zasialcza", "Obsługiwane formaty płyt"
-    // Nie podoba mi się złącze w Dyskach
-    // 

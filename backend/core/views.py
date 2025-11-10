@@ -11,11 +11,11 @@ from .serializer import (
     ManufacturerSerializer, CPUSerializer, GPUSerializer, MotherboardSerializer,
     RAMSerializer, StorageSerializer, PSUSerializer, CaseSerializer,
     CoolerSerializer, BuildSerializer, BuildDetailSerializer,
-    GPUDetailSerializer, PSUDetailSerializer, MotherboardDetailSerializer
-)
-from .serializer import (
-    PSUFormFactorSerializer, MotherboardFormFactorSerializer,
-    ConnectorSerializer, RAMBaseSerializer, SocketSerializer
+    GPUDetailSerializer, PSUDetailSerializer, MotherboardDetailSerializer,
+    CPUDetailSerializer, RAMDetailSerializer, StorageDetailSerializer,
+    CaseDetailSerializer, CoolerDetailSerializer, PSUFormFactorSerializer,
+    MotherboardFormFactorSerializer, ConnectorSerializer, RAMBaseSerializer,
+    SocketSerializer, 
 )
 from core.services.motherboard_service import MotherboardService
 from core.services.cpu_service import CPUService
@@ -68,7 +68,11 @@ class ManufacturerViewSet(BaseViewSet):
 
 class CPUViewSet(BaseViewSet):
     queryset = CPU.objects.all().order_by("id")
-    serializer_class = CPUSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return CPUDetailSerializer
+        return CPUSerializer
 
     def get_queryset(self):
         return CPUService.get_compatible_cpus(
@@ -78,7 +82,11 @@ class CPUViewSet(BaseViewSet):
 
 class GPUViewSet(BaseViewSet):
     queryset = GPU.objects.all().order_by("id")
-    serializer_class = GPUDetailSerializer
+    
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return GPUDetailSerializer
+        return GPUSerializer
 
     def get_queryset(self):
         return GPUService.get_compatible_gpus(
@@ -88,7 +96,11 @@ class GPUViewSet(BaseViewSet):
 
 class MotherboardViewSet(BaseViewSet):
     queryset = Motherboard.objects.all().order_by("id")
-    serializer_class = MotherboardDetailSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return MotherboardDetailSerializer
+        return MotherboardSerializer
 
     def get_queryset(self):
         return MotherboardService.get_compatible_motherboards(
@@ -98,7 +110,11 @@ class MotherboardViewSet(BaseViewSet):
 
 class RAMViewSet(BaseViewSet):
     queryset = RAM.objects.all().order_by("id")
-    serializer_class = RAMSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return RAMDetailSerializer
+        return RAMSerializer
 
     def get_queryset(self):
         return RAMService.get_compatible_rams(
@@ -108,7 +124,11 @@ class RAMViewSet(BaseViewSet):
 
 class StorageViewSet(BaseViewSet):
     queryset = Storage.objects.all().order_by("id")
-    serializer_class = StorageSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return StorageDetailSerializer
+        return StorageSerializer
 
     def get_queryset(self):
         return StorageService.get_compatible_m2(
@@ -118,7 +138,11 @@ class StorageViewSet(BaseViewSet):
 
 class PSUViewSet(BaseViewSet):
     queryset = PSU.objects.all().order_by("id")
-    serializer_class = PSUDetailSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return PSUDetailSerializer
+        return PSUSerializer
 
     def get_queryset(self):
         return PSUService.get_compatible_psus(
@@ -128,7 +152,11 @@ class PSUViewSet(BaseViewSet):
 
 class CaseViewSet(BaseViewSet):
     queryset = Case.objects.all().order_by("id")
-    serializer_class = CaseSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return CaseDetailSerializer
+        return CaseSerializer
 
     def get_queryset(self):
         return CaseService.get_compatible_cases(
@@ -138,9 +166,13 @@ class CaseViewSet(BaseViewSet):
 
 class CoolerViewSet(BaseViewSet):
     queryset = Cooler.objects.all().order_by("id")
-    serializer_class = CoolerSerializer
     search_fields = ["name", "manufacturer__name", "type", "socket_compat"]
     ordering_fields = ["tdp_w_supported", "id"]
+
+    def get_serializer_class(self):
+        if self.action in ['retrieve', 'list']:
+            return CoolerDetailSerializer
+        return CoolerSerializer
 
     def get_queryset(self):
         qs = super().get_queryset()

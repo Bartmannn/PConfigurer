@@ -84,8 +84,36 @@ class RAM(models.Model):
         self.ram_latency_ns = self.cycle_latency * 2000 / self.base.mts
         super().save(*args, **kwargs)
 
+    @property
+    def full_name(self):
+        return f"{self.manufacturer.name} {self.name} {self.total_capacity}GB ({self.modules_count}x{self.module_memory}GB) {self.base.type}-{self.base.mts} CL{self.cycle_latency}"
+
+    @property
+    def short_name(self):
+        return f"{self.manufacturer.name} {self.total_capacity}GB {self.base.type} {self.base.mts}"
+
+    @property
+    def manufacturer_name(self):
+        return self.manufacturer.name
+
+    @property
+    def kit_info(self):
+        return f"{self.modules_count}x {self.module_memory}GB"
+
+    @property
+    def capacity_info(self):
+        return f"{self.total_capacity} GB"
+
+    @property
+    def type_info(self):
+        return f"{self.base.type} {self.base.mts} MHz"
+
+    @property
+    def latency_info(self):
+        return f"CL{self.cycle_latency}"
+
     def __str__(self):
-        return f"{self.name} {self.total_capacity}GB {self.base.type}"
+        return self.short_name
 
 
 class Socket(models.Model):
@@ -96,8 +124,6 @@ class Socket(models.Model):
 
 
 class CPU(models.Model):
-    # TODO: chipset, typy pamięci
-
     name = models.CharField(max_length=120)
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     socket = models.ForeignKey(Socket, on_delete=models.PROTECT)
@@ -113,26 +139,55 @@ class CPU(models.Model):
     integrated_gpu = models.BooleanField(default=False)
 
     @property
+    def full_name(self):
+        return f"{self.manufacturer.name} {self.name}"
+
+    @property
+    def short_name(self):
+        return self.name
+
+    @property
+    def manufacturer_name(self):
+        return self.manufacturer.name
+
+    @property
+    def socket_name(self):
+        return self.socket.name
+
+    @property
+    def cores_info(self):
+        return f"Performance Cores: {self.p_cores}, Efficient Cores: {self.e_cores}"
+
+    @property
+    def threads_info(self):
+        return self.threads
+
+    @property
+    def clock_speed_info(self):
+        boost_clock = f" ({self.boost_clock_ghz} GHz Boost)" if self.boost_clock_ghz else ""
+        return f"{self.base_clock_ghz} GHz{boost_clock}"
+
+    @property
+    def cache_info(self):
+        return f"Total Cache: {self.cache_mb} MB" if self.cache_mb else "N/A"
+
+    @property
+    def integrated_graphics(self):
+        return self.integrated_gpu
+
+    @property
+    def ram_support_info(self):
+        return ", ".join([str(ram) for ram in self.supported_ram.all()])
+
+    @property
     def tier_score(self):
         MAX_CPU_SCORE = 125
-
-        # Raw score calculation now includes p-cores, e-cores, and cache
-        raw_score = (self.p_cores * 4) + \
-                    (self.e_cores * 1) + \
-                    (self.threads * 1) + \
-                    ((self.cache_mb or 0) * 0.5) + \
-                    (float(self.boost_clock_ghz or self.base_clock_ghz) * 2)
-        
-        normalized_score = 0
-        if raw_score > MAX_CPU_SCORE:
-            normalized_score = 10
-        else:
-            normalized_score = (raw_score / MAX_CPU_SCORE) * 10
-        
+        raw_score = (self.p_cores * 4) + (self.e_cores * 1) + (self.threads * 1) + ((self.cache_mb or 0) * 0.5) + (float(self.boost_clock_ghz or self.base_clock_ghz) * 2)
+        normalized_score = 10 if raw_score > MAX_CPU_SCORE else (raw_score / MAX_CPU_SCORE) * 10
         return round(normalized_score)
 
     def __str__(self):
-        return f"{self.name} {self.base_clock_ghz}GHz"
+        return self.full_name
 
 
 class Storage(models.Model):
@@ -143,17 +198,38 @@ class Storage(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     
     @property
+    def full_name(self):
+        return f"{self.manufacturer.name} {self.name} {self.capacity_gb}GB"
+
+    @property
+    def short_name(self):
+        return f"{self.name} {self.capacity_gb}GB"
+
+    @property
+    def manufacturer_name(self):
+        return self.manufacturer.name
+
+    @property
+    def capacity_info(self):
+        return f"{self.capacity_gb} GB"
+
+    @property
+    def interface_info(self):
+        return str(self.connector)
+
+    @property
+    def type_info(self):
+        return self.type
+
+    @property
     def type(self):
         match self.connector.category:
-            case "M.2 PCIe":
-                return "NVMe"
-            case "M.2 SATA" | "SATA":
-                return "SATA"
-            case _:
-                return "HDD"
+            case "M.2 PCIe": return "NVMe"
+            case "M.2 SATA" | "SATA": return "SATA"
+            case _: return "HDD"
 
     def __str__(self):
-        return f"{self.manufacturer} {self.name} {self.capacity_gb}GB {self.connector}"
+        return self.full_name
 
 
 class PSUFormFactor(models.Model):
@@ -171,8 +247,32 @@ class PSU(models.Model):
     form_factor = models.ForeignKey(PSUFormFactor, on_delete=models.PROTECT)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
-    def __str__(self):
+    @property
+    def full_name(self):
+        return f"{self.manufacturer.name} {self.name} {self.wattage}W"
+
+    @property
+    def short_name(self):
         return f"{self.name} {self.wattage}W"
+
+    @property
+    def manufacturer_name(self):
+        return self.manufacturer.name
+
+    @property
+    def wattage_info(self):
+        return f"{self.wattage} W"
+
+    @property
+    def form_factor_name(self):
+        return self.form_factor.name
+
+    @property
+    def connectors_info(self):
+        return ", ".join([f"{item.quantity}x {item.connector}" for item in self.psuconnector_set.all()])
+
+    def __str__(self):
+        return self.full_name
 
 
 class PSUConnector(models.Model):
@@ -184,37 +284,41 @@ class PSUConnector(models.Model):
 class GraphicsChip(models.Model):
     name = models.CharField(max_length=120, unique=True)
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
-    
-    # Core Specs
-    cuda_cores = models.PositiveSmallIntegerField(default=0) # Or stream_processors for AMD
+    cuda_cores = models.PositiveSmallIntegerField(default=0)
     base_clock_mhz = models.PositiveSmallIntegerField(null=True, blank=True)
     boost_clock_mhz = models.PositiveSmallIntegerField(null=True, blank=True)
-    
-    # Memory Specs
     memory_type = models.CharField(max_length=8, choices=[('GDDR5', 'GDDR5'), ('GDDR6', 'GDDR6'), ('GDDR6X', 'GDDR6X'), ('GDDR7', 'GDDR7')], null=True, blank=True)
     memory_size_gb = models.PositiveSmallIntegerField()
     memory_bus_width = models.PositiveSmallIntegerField()
-    
-    # Power Specs
     total_graphics_power_w = models.PositiveSmallIntegerField(null=True, blank=True)
     recommended_system_power_w = models.PositiveSmallIntegerField(null=True, blank=True)
 
     @property
+    def chip_manufacturer_name(self):
+        return self.manufacturer.name
+
+    @property
+    def chip_name(self):
+        return self.name
+
+    @property
+    def vram_info(self):
+        return f"{self.memory_size_gb}GB {self.memory_type}"
+
+    @property
+    def clock_speed_info(self):
+        boost_clock = f" ({self.boost_clock_mhz} MHz Boost)" if self.boost_clock_mhz else ""
+        return f"{self.base_clock_mhz} MHz{boost_clock}"
+
+    @property
+    def bus_width_info(self):
+        return f"{self.memory_bus_width}-bit"
+
+    @property
     def tier_score(self):
         MAX_GPU_SCORE = 314 + 241
-
-        raw_score = (
-            (self.cuda_cores or 0) * 0.01 +
-            (self.boost_clock_mhz or self.base_clock_mhz or 0) * 0.1 +
-            (self.memory_size_gb or 0) * 1
-        )
-        
-        normalized_score = 0
-        if raw_score >= MAX_GPU_SCORE:
-            normalized_score = 10
-        else:
-            normalized_score = (raw_score / MAX_GPU_SCORE) * 10
-        
+        raw_score = ((self.cuda_cores or 0) * 0.01) + ((self.boost_clock_mhz or self.base_clock_mhz or 0) * 0.1) + ((self.memory_size_gb or 0) * 1)
+        normalized_score = 10 if raw_score >= MAX_GPU_SCORE else (raw_score / MAX_GPU_SCORE) * 10
         return round(normalized_score)
 
     def __str__(self):
@@ -222,21 +326,61 @@ class GraphicsChip(models.Model):
 
 
 class GPU(models.Model):
-    manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT) # e.g., ASUS, MSI
-    name = models.CharField(max_length=120) # e.g., "TUF GAMING OC"
+    manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
+    name = models.CharField(max_length=120)
     graphics_chip = models.ForeignKey(GraphicsChip, on_delete=models.PROTECT, null=True)
-
-    # Physical properties & Price
     length_mm = models.PositiveSmallIntegerField()
     width_mm = models.PositiveSmallIntegerField()
     height_mm = models.PositiveSmallIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    
-    # Connectors
     connectors = models.ManyToManyField(Connector, through="GPUConnector")
 
+    @property
+    def full_name(self):
+        return f"{self.manufacturer.name} {self.graphics_chip.name} {self.name}"
+
+    @property
+    def short_name(self):
+        return f"{self.manufacturer.name} {self.graphics_chip.name.replace('GeForce', '').strip()} {self.name}"
+
+    @property
+    def manufacturer_name(self):
+        return self.manufacturer.name
+
+    @property
+    def dimensions_info(self):
+        return f"Length: {self.length_mm}mm, Width: {self.width_mm}mm, Height: {self.height_mm}mm"
+
+    @property
+    def ports_info(self):
+        return ", ".join([f"{item.quantity}x {item.connector}" for item in self.gpuconnector_set.all()])
+
+    @property
+    def chip_manufacturer_name(self):
+        return self.graphics_chip.chip_manufacturer_name
+
+    @property
+    def chip_name(self):
+        return self.graphics_chip.chip_name
+
+    @property
+    def vram_info(self):
+        return self.graphics_chip.vram_info
+
+    @property
+    def clock_speed_info(self):
+        return self.graphics_chip.clock_speed_info
+
+    @property
+    def bus_width_info(self):
+        return self.graphics_chip.bus_width_info
+
+    @property
+    def tier_score(self):
+        return self.graphics_chip.tier_score
+
     def __str__(self):
-        return f"{self.manufacturer} {self.graphics_chip} {self.name} {self.graphics_chip.memory_size_gb}GB {self.graphics_chip.memory_type}"
+        return self.full_name
 
 
 class GPUConnector(models.Model):
@@ -249,11 +393,30 @@ class Cooler(models.Model):
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     name = models.CharField(max_length=120)
     type = models.CharField(max_length=16)
-    socket_compat = models.CharField(max_length=120)  # np. "AM4,AM5,LGA1700"
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
-    def __str__(self):
+    @property
+    def full_name(self):
+        return f"{self.manufacturer.name} {self.name}"
+
+    @property
+    def short_name(self):
         return self.name
+
+    @property
+    def manufacturer_name(self):
+        return self.manufacturer.name
+
+    @property
+    def type_info(self):
+        return self.type
+
+    @property
+    def supported_sockets_info(self):
+        return self.socket_compat
+
+    def __str__(self):
+        return self.full_name
 
 
 class MotherboardFormFactor(models.Model):
@@ -263,40 +426,95 @@ class MotherboardFormFactor(models.Model):
         return self.name
 
 
-class Case(models.Model): # TODO: chłodzenie procka wysokość
+class Case(models.Model):
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     name = models.CharField(max_length=120)
     mobo_form_factor_support = models.ManyToManyField(MotherboardFormFactor)
     psu_form_factor_support = models.ManyToManyField(PSUFormFactor)
     max_gpu_length_mm = models.PositiveSmallIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    # max_cooler_height_mm = models.PositiveSmallIntegerField()
+
+    @property
+    def full_name(self):
+        return f"{self.manufacturer.name} {self.name}"
+
+    @property
+    def short_name(self):
+        return self.name
+
+    @property
+    def manufacturer_name(self):
+        return self.manufacturer.name
+
+    @property
+    def mobo_support_info(self):
+        return ", ".join([str(ff) for ff in self.mobo_form_factor_support.all()])
+
+    @property
+    def max_gpu_length_info(self):
+        return f"{self.max_gpu_length_mm} mm"
 
     def __str__(self):
-        return f"{self.manufacturer} {self.name}"
+        return self.full_name
 
 
 class Motherboard(models.Model):
-    #TODO: chipsety
     name = models.CharField(max_length=128)
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     socket = models.ForeignKey(Socket, on_delete=models.PROTECT)
     form_factor = models.ForeignKey(MotherboardFormFactor, on_delete=models.CASCADE)
-    
-    # RAM
     supported_ram = models.ManyToManyField(RAMBase)
-    max_ram_capacity = models.PositiveSmallIntegerField(choices=[
-        (32, "32 GB"),(64, "64 GB"),(96, "96 GB"),(128, "128 GB"),
-        (192, "192 GB"),(256, "256 GB"),(1024, "1024 GB"),(2048, "2048 GB")
-    ])
+    max_ram_capacity = models.PositiveSmallIntegerField(choices=[(32, "32 GB"),(64, "64 GB"),(96, "96 GB"),(128, "128 GB"),(192, "192 GB"),(256, "256 GB"),(1024, "1024 GB"),(2048, "2048 GB")])
     dimm_slots = models.PositiveSmallIntegerField(choices=[(2, "2 x DIMM"), (4, "4 x DIMM")])
-    
-    # GPU, Dyski, Chłodzenie, Zasilanie, itp.
     connectors = models.ManyToManyField(Connector, through="MotherboardConnector")
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
-    def __str__(self):
+    @property
+    def full_name(self):
+        return f"{self.manufacturer.name} {self.name}"
+
+    @property
+    def short_name(self):
         return self.name
+
+    @property
+    def manufacturer_name(self):
+        return self.manufacturer.name
+
+    @property
+    def socket_name(self):
+        return self.socket.name
+
+    @property
+    def form_factor_name(self):
+        return self.form_factor.name
+
+    @property
+    def dimm_slots_count(self):
+        return self.dimm_slots
+
+    @property
+    def supported_ram_types(self):
+        return ", ".join(self.supported_ram.values_list('type', flat=True).distinct())
+
+    @property
+    def max_ram_capacity_info(self):
+        return f"{self.max_ram_capacity} GB"
+
+    @property
+    def pcie_slots_info(self):
+        return ", ".join([f"{item.quantity}x {item.connector}" for item in self.motherboardconnector_set.filter(connector__category="PCIe")])
+
+    @property
+    def m2_slots_info(self):
+        return ", ".join([f"{item.quantity}x {item.connector}" for item in self.motherboardconnector_set.filter(connector__category__startswith="M.2")])
+
+    @property
+    def sata_ports_info(self):
+        return ", ".join([f"{item.quantity}x {item.connector}" for item in self.motherboardconnector_set.filter(connector__category="SATA")])
+
+    def __str__(self):
+        return self.full_name
 
 
 class MotherboardConnector(models.Model):

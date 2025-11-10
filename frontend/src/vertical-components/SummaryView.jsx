@@ -28,7 +28,7 @@ function SummaryView({ selected, onSelectCategory }) {
                 <h4>{CATEGORY_LABELS[key]}</h4>
                 <p>
                   {selected[key]
-                    ? `${selected[key].name}`
+                    ? `${selected[key].short_name}`
                     : "Nie wybrano podzespołu"}
                 </p>
               </div>

@@ -3,7 +3,7 @@ const officeRules = [
     if (!build.gpu && build.cpu?.integrated_gpu) return { score: 10, feedback: '' };
     if (build.gpu && build.cpu?.integrated_gpu) return { score: -5, feedback: 'Nie potrzebujesz dedykowanej karty graficznej, masz ją zintegrowaną w procesorze.' };
     
-    const gpu_tier_score = build.gpu?.graphics_chip.tier_score || 0;
+    const gpu_tier_score = build.gpu?.tier_score || 0;
     
     if (gpu_tier_score <= 1) return { score: 5, feedback: '' };
     if (gpu_tier_score < 4) return { score: -5, feedback: 'Przepłacasz na karcie grafiki.' };
@@ -40,7 +40,7 @@ const officeRules = [
     return { score: -5, feedback: 'Dysk HDD jest zbyt powolny na dzisiejsze standardy.' };
   },
   (build) => { // biuro - Pamięć (pojemność)
-    if (!build.mem) return { score: 0, feedback: 'Wybierz dysk.' };
+    if (!build.mem) return { score: 0, feedback: '' };
     if (build.mem?.capacity_gb < 500) return { score: -5, feedback: 'Mniej niż 500GB na dysku może okazać się niewystarczające.' };
     if (build.mem?.capacity_gb <= 1000) return { score: 5, feedback: '' };
     return { score: -5, feedback: 'Ponad 1TB (1000GB) jest niepotrzebny.' };
@@ -178,7 +178,7 @@ const professionalRules = [
     return { score: -15, feedback: 'Dysk HDD się tutaj nie nadaje.' };
   },
   (build) => { // profesjonalia - Pamięć (pojemność)
-    if (!build.mem) return { score: 0, feedback: 'Wybierz dysk.' };
+    if (!build.mem) return { score: 0, feedback: '' };
 
     if (build.mem?.capacity_gb < 2000) return { score: -10, feedback: 'Mniej niż 2000GB (2TB) na dysku to zdecydowanie za mało.' };
     if (build.mem?.capacity_gb < 4000) return { score: 0, feedback: 'Mniej niż 4000GB (4TB) może nie wystarczyć.' };

@@ -70,10 +70,14 @@ function ComponentList({ category, selected, onPreview, onSelect, selectedItem }
                 selectedItem?.id === item.id ? "#4f5f4f" : "#2b2b2b",
             }}
           >
-            {item.display_name || item.name || item.model || `Element ${item.id}`}
+            {item.short_name}
           </li>
         ))}
-        {items.length === 0 && !loading && <p>Brak wyników.</p>}
+        {items.length === 0 && !loading && (
+          <li key="no-results">
+            <p>Brak wyników.</p>
+          </li>
+        )}
       </ul>
     </div>
   );
