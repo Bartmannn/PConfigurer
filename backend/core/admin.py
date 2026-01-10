@@ -71,7 +71,7 @@ class GPUConnectorInline(admin.TabularInline):
 @admin.register(GPU)
 class GPUAdmin(admin.ModelAdmin):
     inlines = [GPUConnectorInline]
-    search_fields = ("name",)
+    search_fields = ("model_name",)
 
 
 class PSUConnectorInline(admin.TabularInline):
@@ -88,12 +88,6 @@ class PSUAdmin(admin.ModelAdmin):
 
 @admin.register(GraphicsChip)
 class GraphicsChipAdmin(admin.ModelAdmin):
-    list_display = ('name', 'manufacturer')
-    list_filter = ('manufacturer',)
-    search_fields = ('name',)
-
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "manufacturer":
-            gpu_manufacturers = ['NVIDIA', 'AMD', 'Intel']
-            kwargs["queryset"] = Manufacturer.objects.filter(name__in=gpu_manufacturers)
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    list_display = ('marketing_name', 'vendor')
+    list_filter = ('vendor',)
+    search_fields = ('marketing_name',)

@@ -20,8 +20,11 @@ class PSUService:
         if gpu_pk:
             # If a GPU is selected, its recommended system power is the primary criterion.
             gpu = GPU.objects.select_related('graphics_chip').filter(pk=gpu_pk).first()
-            if gpu and gpu.graphics_chip.recommended_system_power_w:
-                min_wattage = gpu.graphics_chip.recommended_system_power_w
+            if gpu:
+                if gpu.recommended_system_power_w:
+                    min_wattage = gpu.recommended_system_power_w
+                elif gpu.tdp:
+                    min_wattage = int(gpu.tdp / PSUService.SAFETY_FACTOR)
         
         elif cpu_pk:
             # If no GPU, estimate based on CPU TDP + a baseline for the rest of the system.

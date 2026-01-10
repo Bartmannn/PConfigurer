@@ -11,12 +11,17 @@ class Manufacturer(models.Model):
 
 class Connector(models.Model):
      # TODO: pozostałe złączki
-    category = models.CharField(max_length=10, choices=[
+    category = models.CharField(max_length=20, choices=[
         ("PCIe", "PCIe"),
         ("M.2 PCIe", "M.2 PCIe"),
         ("M.2 SATA", "M.2 SATA"),
         ("SATA", "SATA"),
         ("USB", "USB"),
+        ("HDMI", "HDMI"),
+        ("DisplayPort", "DisplayPort"),
+        ("DVI", "DVI"),
+        ("VGA", "VGA"),
+        ("USB-C", "USB-C"),
         ("Fan", "Fan"),
         ("ATX Power", "ATX Power"),
         ("CPU Power", "CPU Power"),
@@ -24,8 +29,6 @@ class Connector(models.Model):
         ("SATA Power", "SATA Power"),
         ("Molex", "Moelx"),
         ("Audio", "Audio"),
-        ("Audio", "Audio"),
-        
     ])
     version = models.DecimalField(max_digits=2, decimal_places=1, null=True, blank=True)
     lanes = models.PositiveSmallIntegerField(null=True, blank=True)
@@ -51,6 +54,13 @@ class Connector(models.Model):
                 return f"{self.category} {rome_digit} ({self.speed}Gb/s)"
             case "USB":
                 return f"{self.category} {self.version}"
+            case "HDMI" | "DisplayPort":
+                version = f" {self.version}" if self.version is not None else ""
+                suffix = f"{self.extra}" if self.extra else ""
+                return f"{self.category}{version}{suffix}"
+            case "DVI" | "VGA" | "USB-C":
+                suffix = f" {self.extra}" if self.extra else ""
+                return f"{self.category}{suffix}"
             case "Fan":
                 raise NotImplemented("Sprawdź to")
             case "ATX Power" | "CPU Power" | "PCIe Power" | "SATA Power" | "Molex":
@@ -312,74 +322,80 @@ class PSUConnector(models.Model):
 
 
 class GraphicsChip(models.Model):
-    name = models.CharField(max_length=120, unique=True)
-    manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
-    cuda_cores = models.PositiveSmallIntegerField(default=0)
-    base_clock_mhz = models.PositiveSmallIntegerField(null=True, blank=True)
-    boost_clock_mhz = models.PositiveSmallIntegerField(null=True, blank=True)
-    memory_type = models.CharField(max_length=8, choices=[('GDDR5', 'GDDR5'), ('GDDR6', 'GDDR6'), ('GDDR6X', 'GDDR6X'), ('GDDR7', 'GDDR7')], null=True, blank=True)
-    memory_size_gb = models.PositiveSmallIntegerField()
-    memory_bus_width = models.PositiveSmallIntegerField()
-    total_graphics_power_w = models.PositiveSmallIntegerField(null=True, blank=True)
-    recommended_system_power_w = models.PositiveSmallIntegerField(null=True, blank=True)
+    vendor = models.CharField(
+        max_length=16,
+        choices=[("NVIDIA", "NVIDIA"), ("AMD", "AMD"), ("Intel", "Intel")],
+        null=True,
+        blank=True,
+    )
+    marketing_name = models.CharField(max_length=120, unique=True, null=True, blank=True)
+    architecture = models.CharField(max_length=64, null=True, blank=True)
+    release_year = models.PositiveSmallIntegerField(null=True, blank=True)
+    pcie_max_gen = models.PositiveSmallIntegerField(null=True, blank=True)
+    pcie_max_width = models.PositiveSmallIntegerField(default=16)
+    memory_type = models.CharField(
+        max_length=8,
+        choices=[('GDDR5', 'GDDR5'), ('GDDR6', 'GDDR6'), ('GDDR6X', 'GDDR6X'), ('GDDR7', 'GDDR7')],
+        null=True,
+        blank=True,
+    )
+    memory_bus_width = models.PositiveSmallIntegerField(null=True, blank=True)
+    ray_tracing_gen = models.PositiveSmallIntegerField(null=True, blank=True)
+    upscaling_technology = models.CharField(
+        max_length=8,
+        choices=[("DLSS", "DLSS"), ("FSR", "FSR"), ("None", "None")],
+        default="None",
+        blank=True,
+    )
 
     @property
     def chip_manufacturer_name(self):
-        return self.manufacturer.name
+        return self.vendor
 
     @property
     def chip_name(self):
-        return self.name
-
-    @property
-    def vram_info(self):
-        return f"{self.memory_size_gb}GB {self.memory_type}"
-
-    @property
-    def clock_speed_info(self):
-        boost_clock = f" ({self.boost_clock_mhz} MHz Boost)" if self.boost_clock_mhz else ""
-        return f"{self.base_clock_mhz} MHz{boost_clock}"
+        return self.marketing_name
 
     @property
     def bus_width_info(self):
-        return f"{self.memory_bus_width}-bit"
+        return f"{self.memory_bus_width}-bit" if self.memory_bus_width else "N/A"
 
     @property
     def tier_score(self):
-        MAX_GPU_SCORE = 314 + 241
-        raw_score = ((self.cuda_cores or 0) * 0.01) + ((self.boost_clock_mhz or self.base_clock_mhz or 0) * 0.1) + ((self.memory_size_gb or 0) * 1)
+        MAX_GPU_SCORE = 250
+        raw_score = ((self.cuda_cores or 0) * 0.01) + ((self.memory_bus_width or 0) * 0.1)
         normalized_score = 10 if raw_score >= MAX_GPU_SCORE else (raw_score / MAX_GPU_SCORE) * 10
         return round(normalized_score)
 
     def __str__(self):
-        return self.name
+        return self.marketing_name or "Unknown GPU"
 
 
 class GPU(models.Model):
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
-    name = models.CharField(max_length=120)
+    model_name = models.CharField(max_length=120)
     graphics_chip = models.ForeignKey(GraphicsChip, on_delete=models.PROTECT, null=True)
+    vram_size_gb = models.PositiveSmallIntegerField(null=True, blank=True)
+    base_clock_mhz = models.PositiveSmallIntegerField(null=True, blank=True)
+    boost_clock_mhz = models.PositiveSmallIntegerField(null=True, blank=True)
+    tdp = models.PositiveSmallIntegerField(null=True, blank=True)
+    recommended_system_power_w = models.PositiveSmallIntegerField(null=True, blank=True)
     length_mm = models.PositiveSmallIntegerField()
-    width_mm = models.PositiveSmallIntegerField()
-    height_mm = models.PositiveSmallIntegerField()
+    slot_width = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    outputs = models.JSONField(null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    supported_pcie = models.ForeignKey(
-        Connector,
-        on_delete=models.PROTECT,
-        null=True,
-        blank=True,
-        limit_choices_to={"category": "PCIe"},
-        related_name="gpus_supported_pcie",
-    )
     connectors = models.ManyToManyField(Connector, through="GPUConnector")
 
     @property
     def full_name(self):
-        return f"{self.manufacturer.name} {self.graphics_chip.name} {self.name}"
+        chip_name = self.graphics_chip.chip_name if self.graphics_chip else ""
+        return f"{self.manufacturer.name} {chip_name} {self.model_name}".strip()
 
     @property
     def short_name(self):
-        return f"{self.manufacturer.name} {self.graphics_chip.name.replace('GeForce', '').strip()} {self.name}"
+        chip_name = self.graphics_chip.chip_name if self.graphics_chip else ""
+        chip_name = chip_name.replace("GeForce", "").strip()
+        return f"{self.manufacturer.name} {chip_name} {self.model_name}".strip()
 
     @property
     def manufacturer_name(self):
@@ -387,35 +403,56 @@ class GPU(models.Model):
 
     @property
     def dimensions_info(self):
-        return f"Length: {self.length_mm}mm, Width: {self.width_mm}mm, Height: {self.height_mm}mm"
+        slot_info = f", Slots: {self.slot_width}" if self.slot_width else ""
+        return f"Length: {self.length_mm}mm{slot_info}"
 
     @property
     def ports_info(self):
-        return [f"{item.quantity}x {item.connector}" for item in self.gpuconnector_set.all()]
+        output_categories = ("HDMI", "DisplayPort", "DVI", "VGA", "USB-C")
+        return [
+            f"{item.quantity}x {item.connector}"
+            for item in self.gpuconnector_set.filter(
+                connector__category__in=output_categories
+            )
+        ]
 
     @property
     def chip_manufacturer_name(self):
-        return self.graphics_chip.chip_manufacturer_name
+        return self.graphics_chip.chip_manufacturer_name if self.graphics_chip else None
 
     @property
     def chip_name(self):
-        return self.graphics_chip.chip_name
+        return self.graphics_chip.chip_name if self.graphics_chip else None
 
     @property
     def vram_info(self):
-        return self.graphics_chip.vram_info
+        if not self.vram_size_gb:
+            return "N/A"
+        memory_type = self.graphics_chip.memory_type if self.graphics_chip else None
+        if memory_type:
+            return f"{self.vram_size_gb}GB {memory_type}"
+        return f"{self.vram_size_gb}GB"
 
     @property
     def clock_speed_info(self):
-        return self.graphics_chip.clock_speed_info
+        if not self.base_clock_mhz and not self.boost_clock_mhz:
+            return "N/A"
+        base_clock = f"{self.base_clock_mhz} MHz" if self.base_clock_mhz else "N/A"
+        boost_clock = f" ({self.boost_clock_mhz} MHz Boost)" if self.boost_clock_mhz else ""
+        return f"{base_clock}{boost_clock}"
 
     @property
     def bus_width_info(self):
-        return self.graphics_chip.bus_width_info
+        return self.graphics_chip.bus_width_info if self.graphics_chip else "N/A"
 
     @property
     def tier_score(self):
-        return self.graphics_chip.tier_score
+        cuda_cores = self.graphics_chip.cuda_cores if self.graphics_chip else 0
+        clock = self.boost_clock_mhz or self.base_clock_mhz or 0
+        raw_score = ((cuda_cores or 0) * 0.01) + ((clock or 0) * 0.1) + ((self.vram_size_gb or 0) * 1)
+        max_score = 314 + 241
+        normalized_score = 10 if raw_score >= max_score else (raw_score / max_score) * 10
+        return round(normalized_score)
 
     def __str__(self):
         return self.full_name

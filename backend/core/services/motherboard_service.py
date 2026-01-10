@@ -1,4 +1,4 @@
-from core.models import Motherboard, CPU, RAM, MotherboardConnector, Case, GPU, GPUConnector, Storage
+from core.models import Motherboard, CPU, RAM, MotherboardConnector, Case, GPU, Storage
 from core import tools
 
 class MotherboardService:
@@ -39,20 +39,13 @@ class MotherboardService:
             
         if gpu_pk:
             gpu = GPU.objects.get(pk=gpu_pk) # TODO: czy tutaj order_by jest konieczne?
-            gpu_conn = (
-                GPUConnector.objects
-                .filter(gpu=gpu, connector__category="PCIe")
-                .order_by("-connector__lanes", "-connector__version")
-                .first()
-            )
-            
-            if not gpu_conn:
+            gpu_chip = gpu.graphics_chip
+            if not gpu_chip:
                 raise ValueError("GPU bez PCIe!")
 
             qs = qs.filter(
                 motherboardconnector__connector__category="PCIe",
-                motherboardconnector__connector__lanes__gte=gpu_conn.connector.lanes,
-                motherboardconnector__connector__version__gte=gpu_conn.connector.version,
+                motherboardconnector__connector__lanes__gte=gpu_chip.pcie_max_width,
                 motherboardconnector__quantity__gte=1
             )
             
@@ -93,7 +86,7 @@ class MotherboardService:
             MotherboardConnector.objects
                 .filter(motherboard=mobo, connector__category="PCIe")
                 .order_by("-connector__lanes", "-connector__version")
-                .values("connector__lanes", "connector__version")
+                .values("connector__lanes")
                 .first()
         )
 
@@ -101,12 +94,8 @@ class MotherboardService:
             return GPU.objects.none()
 
         lanes = mobo_slot["connector__lanes"]
-        version = mobo_slot["connector__version"]
-
         qs = GPU.objects.filter(
-            gpuconnector__connector__category="PCIe",
-            gpuconnector__connector__lanes__lte=lanes,
-            gpuconnector__connector__version__lte=version,
+            graphics_chip__pcie_max_width__lte=lanes,
         )
 
         return qs.distinct()
