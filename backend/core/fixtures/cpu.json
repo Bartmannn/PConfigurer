@@ -1,0 +1,105 @@
+[
+{
+    "model": "core.cpu",
+    "pk": 1,
+    "fields": {
+        "name": "Intel Core i5-14600K",
+        "family": null,
+        "generation": null,
+        "model_code": null,
+        "manufacturer": 2,
+        "socket": 1,
+        "p_cores": 6,
+        "e_cores": 8,
+        "threads": 20,
+        "base_clock_ghz": "3.50",
+        "boost_clock_ghz": "5.30",
+        "max_internal_memory_gb": null,
+        "tdp": 125,
+        "price": "899.00",
+        "cache_mb": 24,
+        "integrated_gpu": true,
+        "supported_ram": [
+            6,
+            14
+        ]
+    }
+},
+{
+    "model": "core.cpu",
+    "pk": 2,
+    "fields": {
+        "name": "AMD Ryzen 5 5600",
+        "family": null,
+        "generation": null,
+        "model_code": null,
+        "manufacturer": 1,
+        "socket": 2,
+        "p_cores": 6,
+        "e_cores": 0,
+        "threads": 12,
+        "base_clock_ghz": "3.50",
+        "boost_clock_ghz": "4.40",
+        "max_internal_memory_gb": null,
+        "tdp": 65,
+        "price": "599.00",
+        "cache_mb": 35,
+        "integrated_gpu": false,
+        "supported_ram": [
+            6
+        ]
+    }
+},
+{
+    "model": "core.cpu",
+    "pk": 3,
+    "fields": {
+        "name": "Core i5-14400F",
+        "family": null,
+        "generation": null,
+        "model_code": null,
+        "manufacturer": 2,
+        "socket": 1,
+        "p_cores": 6,
+        "e_cores": 4,
+        "threads": 16,
+        "base_clock_ghz": "2.50",
+        "boost_clock_ghz": "4.70",
+        "max_internal_memory_gb": null,
+        "tdp": 65,
+        "price": "649.00",
+        "cache_mb": 20,
+        "integrated_gpu": false,
+        "supported_ram": [
+            6,
+            12
+        ]
+    }
+},
+{
+    "model": "core.cpu",
+    "pk": 4,
+    "fields": {
+        "name": "Core i7-14700K",
+        "family": null,
+        "generation": null,
+        "model_code": null,
+        "manufacturer": 2,
+        "socket": 1,
+        "p_cores": 8,
+        "e_cores": 12,
+        "threads": 28,
+        "base_clock_ghz": "3.40",
+        "boost_clock_ghz": "5.60",
+        "max_internal_memory_gb": null,
+        "tdp": 125,
+        "price": "1449.00",
+        "cache_mb": 33,
+        "integrated_gpu": true,
+        "supported_ram": [
+            6,
+            14
+        ]
+    }
+}
+]

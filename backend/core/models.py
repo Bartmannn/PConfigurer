@@ -36,10 +36,14 @@ class Connector(models.Model):
     def __str__(self):
         match self.category:
             case "PCIe":
-                return f"{self.category} {self.version} x{self.lanes}"
+                version = f" {self.version}" if self.version is not None else ""
+                lanes = f" x{self.lanes}" if self.lanes else ""
+                return f"{self.category}{version}{lanes}"
             case "M.2 PCIe":
                 support_SATA = " / SATA" if self.extra else ""
-                return f"{self.category} NVMe {self.version} x{self.lanes}{support_SATA}"
+                version = f" {self.version}" if self.version is not None else ""
+                lanes = f" x{self.lanes}" if self.lanes else ""
+                return f"{self.category} NVMe{version}{lanes}{support_SATA}"
             case "M.2 SATA":
                 return f"{self.category}"
             case "SATA":
@@ -120,11 +124,14 @@ class Socket(models.Model):
     name = models.CharField(max_length=16, unique=True)
     
     def __str__(self):
-        return f"Socket {self.name}"
+        return f"{self.name}"
 
 
 class CPU(models.Model):
     name = models.CharField(max_length=120)
+    family = models.CharField(max_length=64, null=True, blank=True)
+    generation = models.CharField(max_length=32, null=True, blank=True)
+    model_code = models.CharField(max_length=64, null=True, blank=True)
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     socket = models.ForeignKey(Socket, on_delete=models.PROTECT)
     p_cores = models.PositiveIntegerField(default=0)
@@ -133,6 +140,14 @@ class CPU(models.Model):
     base_clock_ghz = models.DecimalField(max_digits=4, decimal_places=2, null=False, blank=False)
     boost_clock_ghz = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     supported_ram = models.ManyToManyField(RAMBase)
+    max_internal_memory_gb = models.PositiveSmallIntegerField(null=True, blank=True)
+    supported_pcie = models.ManyToManyField(
+        Connector,
+        through="CPUSupportedPCIe",
+        related_name="cpu_supported_pcie",
+        blank=True,
+        limit_choices_to={"category": "PCIe"},
+    )
     tdp = models.PositiveSmallIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     cache_mb = models.PositiveIntegerField(null=True, blank=True, help_text="Total cache size in MB")
@@ -156,7 +171,7 @@ class CPU(models.Model):
 
     @property
     def cores_info(self):
-        return f"Performance Cores: {self.p_cores}, Efficient Cores: {self.e_cores}"
+        return f"Performance: {self.p_cores}, Efficient: {self.e_cores}"
 
     @property
     def threads_info(self):
@@ -169,7 +184,7 @@ class CPU(models.Model):
 
     @property
     def cache_info(self):
-        return f"Total Cache: {self.cache_mb} MB" if self.cache_mb else "N/A"
+        return f"{self.cache_mb} MB" if self.cache_mb else "N/A"
 
     @property
     def integrated_graphics(self):
@@ -188,6 +203,21 @@ class CPU(models.Model):
 
     def __str__(self):
         return self.full_name
+
+
+class CPUSupportedPCIe(models.Model):
+    cpu = models.ForeignKey(CPU, on_delete=models.CASCADE)
+    connector = models.ForeignKey(
+        Connector,
+        on_delete=models.PROTECT,
+        limit_choices_to={"category": "PCIe"},
+    )
+    quantity = models.PositiveSmallIntegerField(default=1)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["cpu", "connector"], name="cpu_supported_pcie_unique")
+        ]
 
 
 class Storage(models.Model):
@@ -333,6 +363,14 @@ class GPU(models.Model):
     width_mm = models.PositiveSmallIntegerField()
     height_mm = models.PositiveSmallIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    supported_pcie = models.ForeignKey(
+        Connector,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        limit_choices_to={"category": "PCIe"},
+        related_name="gpus_supported_pcie",
+    )
     connectors = models.ManyToManyField(Connector, through="GPUConnector")
 
     @property
@@ -538,4 +576,3 @@ class Build(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.name}"
-

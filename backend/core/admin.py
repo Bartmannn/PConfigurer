@@ -4,19 +4,43 @@ from .models import (
     Manufacturer, Motherboard, Connector, Storage,
     RAMBase, Socket, Cooler, Build, Case, CPU, GPU,
     RAM, PSU, MotherboardFormFactor, PSUFormFactor,
-    GraphicsChip
+    GraphicsChip, CPUSupportedPCIe
 )
 
 admin.site.register(MotherboardFormFactor)
 admin.site.register(PSUFormFactor)
 admin.site.register(Manufacturer)
-admin.site.register(Storage)
 admin.site.register(RAMBase)
 admin.site.register(Socket)
 admin.site.register(Cooler)
 admin.site.register(Build)
 admin.site.register(Case)
-admin.site.register(CPU)
+class CPUSupportedPCIeInline(admin.TabularInline):
+    model = CPUSupportedPCIe
+    extra = 1
+    autocomplete_fields = ["connector"]
+
+
+@admin.register(CPU)
+class CPUAdmin(admin.ModelAdmin):
+    inlines = [CPUSupportedPCIeInline]
+    search_fields = ("name",)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "manufacturer":
+            cpu_manufacturers = ['Intel', 'AMD']
+            kwargs["queryset"] = Manufacturer.objects.filter(name__in=cpu_manufacturers)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+@admin.register(Storage)
+class StorageAdmin(admin.ModelAdmin):
+    search_fields = ("name",)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "connector":
+            kwargs["queryset"] = Connector.objects.filter(category__in=["M.2 PCIe", "M.2 SATA", "SATA"])
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 admin.site.register(RAM)
 
 

@@ -1,0 +1,374 @@
+[
+{
+    "model": "core.connector",
+    "pk": 1,
+    "fields": {
+        "category": "PCIe",
+        "version": "4.0",
+        "lanes": 16,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 2,
+    "fields": {
+        "category": "SATA",
+        "version": "3.0",
+        "lanes": null,
+        "speed": "6",
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 3,
+    "fields": {
+        "category": "M.2 PCIe",
+        "version": "3.0",
+        "lanes": 4,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 4,
+    "fields": {
+        "category": "M.2 SATA",
+        "version": null,
+        "lanes": null,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 5,
+    "fields": {
+        "category": "PCIe",
+        "version": "3.0",
+        "lanes": 16,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 6,
+    "fields": {
+        "category": "PCIe",
+        "version": "3.0",
+        "lanes": 8,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 7,
+    "fields": {
+        "category": "PCIe",
+        "version": "2.0",
+        "lanes": 1,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 8,
+    "fields": {
+        "category": "PCIe",
+        "version": "5.0",
+        "lanes": 16,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 9,
+    "fields": {
+        "category": "PCIe",
+        "version": "5.0",
+        "lanes": 8,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 10,
+    "fields": {
+        "category": "PCIe",
+        "version": "2.0",
+        "lanes": 8,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 11,
+    "fields": {
+        "category": "CPU Power",
+        "version": null,
+        "lanes": 4,
+        "speed": null,
+        "extra": null,
+        "is_power": true
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 12,
+    "fields": {
+        "category": "CPU Power",
+        "version": null,
+        "lanes": 8,
+        "speed": null,
+        "extra": null,
+        "is_power": true
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 13,
+    "fields": {
+        "category": "PCIe Power",
+        "version": "5.1",
+        "lanes": 6,
+        "speed": null,
+        "extra": null,
+        "is_power": true
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 14,
+    "fields": {
+        "category": "PCIe Power",
+        "version": "5.1",
+        "lanes": 2,
+        "speed": null,
+        "extra": null,
+        "is_power": true
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 15,
+    "fields": {
+        "category": "PCIe Power",
+        "version": "5.0",
+        "lanes": 12,
+        "speed": null,
+        "extra": null,
+        "is_power": true
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 16,
+    "fields": {
+        "category": "PCIe Power",
+        "version": "5.0",
+        "lanes": 4,
+        "speed": null,
+        "extra": null,
+        "is_power": true
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 17,
+    "fields": {
+        "category": "PCIe Power",
+        "version": "2.0",
+        "lanes": 6,
+        "speed": null,
+        "extra": null,
+        "is_power": true
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 18,
+    "fields": {
+        "category": "PCIe Power",
+        "version": "2.0",
+        "lanes": 2,
+        "speed": null,
+        "extra": null,
+        "is_power": true
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 19,
+    "fields": {
+        "category": "PCIe Power",
+        "version": "5.1",
+        "lanes": 16,
+        "speed": null,
+        "extra": null,
+        "is_power": true
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 20,
+    "fields": {
+        "category": "ATX Power",
+        "version": null,
+        "lanes": 24,
+        "speed": null,
+        "extra": null,
+        "is_power": true
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 21,
+    "fields": {
+        "category": "ATX Power",
+        "version": null,
+        "lanes": 8,
+        "speed": null,
+        "extra": null,
+        "is_power": true
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 22,
+    "fields": {
+        "category": "ATX Power",
+        "version": null,
+        "lanes": 4,
+        "speed": null,
+        "extra": null,
+        "is_power": true
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 23,
+    "fields": {
+        "category": "M.2 PCIe",
+        "version": "4.0",
+        "lanes": 4,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 24,
+    "fields": {
+        "category": "M.2 PCIe",
+        "version": "5.0",
+        "lanes": 2,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 25,
+    "fields": {
+        "category": "M.2 PCIe",
+        "version": "5.0",
+        "lanes": 4,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 26,
+    "fields": {
+        "category": "PCIe",
+        "version": "4.0",
+        "lanes": 8,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 27,
+    "fields": {
+        "category": "PCIe",
+        "version": "4.0",
+        "lanes": 4,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 28,
+    "fields": {
+        "category": "PCIe",
+        "version": "5.0",
+        "lanes": 4,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 29,
+    "fields": {
+        "category": "PCIe",
+        "version": "3.0",
+        "lanes": null,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 30,
+    "fields": {
+        "category": "PCIe",
+        "version": "4.0",
+        "lanes": null,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+},
+{
+    "model": "core.connector",
+    "pk": 31,
+    "fields": {
+        "category": "PCIe",
+        "version": "5.0",
+        "lanes": null,
+        "speed": null,
+        "extra": null,
+        "is_power": false
+    }
+}
+]

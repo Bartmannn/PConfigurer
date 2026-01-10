@@ -112,8 +112,7 @@ function ComponentDetails({ category, selectedItem, onSelect, onBack }) {
 
     const fetchData = async () => {
       try {
-        // Fetch data from the detail endpoint, which now returns flattened data
-        const res = await fetch(`http://localhost:8000/api/${endpoint}/${selectedItem.id}/`);
+        const res = await fetch(`http://localhost:8000/api/${endpoint}/${selectedItem.id}/`);  // pobieranie szczegółowych danych
         const data = await res.json();
         setDetails(data);
 
@@ -129,7 +128,7 @@ function ComponentDetails({ category, selectedItem, onSelect, onBack }) {
   }, [category, selectedItem, currentBuild]);
 
   if (!details)
-    return <div className="component-details">Ładowanie danych...</div>;
+    return <div className="component-details">Wybierz podzespół z listy.</div>;
 
   const labels = FIELD_LABELS[category] || {};
   const visible = Object.entries(details).filter(([k]) => labels[k]);

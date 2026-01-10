@@ -26,16 +26,15 @@ function ComponentList({ category, selected, onPreview, onSelect, selectedItem }
 
     setLoading(true);
     const baseUrl = "http://localhost:8000/api/";
-
     const conf = map[category];
+
     if (!conf) return;
 
     let url = baseUrl + conf.endpoint;
     const query = conf.params
-      .filter((p) => selected[p]?.id)
-      .map((p) => `${p}=${selected[p].id}`)
+      .filter((p) => selected[p]?.id)               // p -> typ podzeposłu (np. CPU), bierzemy pod uwagę niepuste wartości
+      .map((p) => `${p}=${selected[p].id}`)         // selected[p].id -> dopisywanie id wybranych wcześniej podzespołów
       .join("&");
-
     if (query) url += "?" + query;
 
     fetch(url)
