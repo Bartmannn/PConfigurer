@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from core.views import CPUViewSet, GPUViewSet, BuildViewSet
+from core.views import CPUViewSet, GPUViewSet, BuildViewSet, FilterOptionsView
 from core.views import (
     CPUViewSet, GPUViewSet, MotherboardViewSet, RAMViewSet, StorageViewSet,
     PSUViewSet, CaseViewSet, CoolerViewSet, BuildViewSet, ManufacturerViewSet,
@@ -30,4 +30,5 @@ router.register(r"sockets", SocketViewSet)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+    path('api/filters/options/', FilterOptionsView.as_view()),
 ]

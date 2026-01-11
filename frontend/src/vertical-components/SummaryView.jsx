@@ -1,3 +1,5 @@
+import FiltersPanel from "./FiltersPanel";
+
 const CATEGORY_LABELS = {
   cpu: "Procesory",
   mobo: "Płyty główne",
@@ -10,11 +12,28 @@ const CATEGORY_LABELS = {
 
 import BuildEvaluation from './BuildEvaluation';
 
-function SummaryView({ selected, onSelectCategory }) {
+function SummaryView({
+  selected,
+  onSelectCategory,
+  filtersOpen,
+  onOpenFilters,
+  onCloseFilters,
+  onFilterChange,
+  onClearFilters,
+  filterOptions,
+  filters,
+  activeFilterCategory,
+  onSelectFilterCategory,
+}) {
   const components = Object.keys(CATEGORY_LABELS);
 
   return (
     <div className="summary-view">
+      <div className="summary-toolbar">
+        <button className="filters-toggle" onClick={onOpenFilters} aria-label="Otworz filtry">
+          Filtry
+        </button>
+      </div>
       <h2>Twój zestaw</h2>
       <div className="summary-content">
         <div className="summary-left">
@@ -39,6 +58,17 @@ function SummaryView({ selected, onSelectCategory }) {
           <BuildEvaluation />
         </div>
       </div>
+      <FiltersPanel
+        isOpen={filtersOpen}
+        activeCategory={activeFilterCategory}
+        onSelectCategory={onSelectFilterCategory}
+        filters={filters}
+        filterOptions={filterOptions}
+        onChange={onFilterChange}
+        onClear={onClearFilters}
+        onClose={onCloseFilters}
+        onApply={onCloseFilters}
+      />
     </div>
   );
 }

@@ -1,6 +1,35 @@
 import { useEffect, useState, useMemo } from "react";
 
-function ComponentList({ category, selected, onPreview, onSelect, selectedItem }) {
+function buildFilterQuery(filters) {
+  if (!filters) return "";
+  const parts = [];
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value === null || value === undefined) return;
+    if (typeof value === "string" && value.trim() === "") return;
+    if (Array.isArray(value)) {
+      if (value.length === 0) return;
+      parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value.join(","))}`);
+      return;
+    }
+    if (typeof value === "object" && value !== null) {
+      const min = value.min;
+      const max = value.max;
+      if (min !== "" && min !== null && min !== undefined) {
+        parts.push(`${encodeURIComponent(key)}_min=${encodeURIComponent(min)}`);
+      }
+      if (max !== "" && max !== null && max !== undefined) {
+        parts.push(`${encodeURIComponent(key)}_max=${encodeURIComponent(max)}`);
+      }
+      return;
+    }
+    parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value)}`);
+  });
+
+  return parts.join("&");
+}
+
+function ComponentList({ category, selected, filters, onPreview, onSelect, selectedItem }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -15,11 +44,16 @@ function ComponentList({ category, selected, onPreview, onSelect, selectedItem }
   };
 
   // Stwórz listę zależności, aby uniknąć niepotrzebnego odświeżania
+  const filterSignature = useMemo(() => {
+    if (!category || !filters) return "";
+    return JSON.stringify(filters[category] || {});
+  }, [category, filters]);
+
   const dependencies = useMemo(() => {
     if (!category || !map[category]) return [category];
     const relevantParams = map[category].params.map(p => selected[p]);
-    return [category, ...relevantParams];
-  }, [category, selected]);
+    return [category, filterSignature, ...relevantParams];
+  }, [category, selected, filterSignature]);
 
   useEffect(() => {
     if (!category) return;
@@ -35,7 +69,9 @@ function ComponentList({ category, selected, onPreview, onSelect, selectedItem }
       .filter((p) => selected[p]?.id)               // p -> typ podzeposłu (np. CPU), bierzemy pod uwagę niepuste wartości
       .map((p) => `${p}=${selected[p].id}`)         // selected[p].id -> dopisywanie id wybranych wcześniej podzespołów
       .join("&");
-    if (query) url += "?" + query;
+    const filterQuery = buildFilterQuery(filters?.[category]);
+    const combinedQuery = [query, filterQuery].filter(Boolean).join("&");
+    if (combinedQuery) url += "?" + combinedQuery;
 
     fetch(url)
       .then((res) => res.json())

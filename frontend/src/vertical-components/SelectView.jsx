@@ -13,7 +13,7 @@ const CATEGORY_LABELS = {
   chassis: "Obudowy",
 };
 
-function SelectView({ category, selected, setSelected, onBack }) {
+function SelectView({ category, selected, setSelected, onBack, filters }) {
   const [selectedItem, setSelectedItem] = useState(null);
   const { updateBuild } = useContext(ConfiguratorContext);
 
@@ -46,6 +46,7 @@ function SelectView({ category, selected, setSelected, onBack }) {
           <ComponentList 
             category={category}
             selected={selected}
+            filters={filters}
             onPreview={handlePreviewItem}
             onSelect={handleSelectItem} // Przywrócenie onSelect dla przycisku "Brak"
             selectedItem={selectedItem}
