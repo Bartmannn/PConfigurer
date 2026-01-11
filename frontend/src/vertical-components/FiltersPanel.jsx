@@ -157,6 +157,7 @@ function FiltersPanel({
               onChange(activeCategory, field.key, { ...current, min: event.target.value })
             }
           />
+          <span className="filters-range-separator">-</span>
           <input
             type="number"
             placeholder="do"
@@ -171,19 +172,22 @@ function FiltersPanel({
   };
 
   const renderBoolField = (field) => {
-    const current = filters?.[activeCategory]?.[field.key] ?? "";
+    const current = filters?.[activeCategory]?.[field.key];
+    const checked = current === true || current === "true";
 
     return (
       <div className="filters-field" key={field.key}>
         <div className="filters-field-title">{getFieldLabel(field)}</div>
-        <select
-          value={current}
-          onChange={(event) => onChange(activeCategory, field.key, event.target.value)}
-        >
-          <option value="">Wszystkie</option>
-          <option value="true">Tak</option>
-          <option value="false">Nie</option>
-        </select>
+        <label className="filters-option filters-boolean">
+          <input
+            type="checkbox"
+            checked={checked}
+            onChange={(event) =>
+              onChange(activeCategory, field.key, event.target.checked)
+            }
+          />
+          <span>Tak</span>
+        </label>
       </div>
     );
   };
@@ -208,16 +212,18 @@ function FiltersPanel({
           <button className="filters-close" onClick={onClose} aria-label="Zamknij filtry">
             x
           </button>
-          <div className="filters-fields">
-            {!filterOptions && <div className="filters-empty">Ladowanie filtrow...</div>}
-            {filterOptions &&
-              fields.map((field) => {
-                if (field.type === "range") return renderRangeField(field);
-                if (field.type === "bool") return renderBoolField(field);
-                return renderMultiField(field);
-              })}
+          <div className="filters-scroll">
+            <div className="filters-fields">
+              {!filterOptions && <div className="filters-empty">Ladowanie filtrow...</div>}
+              {filterOptions &&
+                fields.map((field) => {
+                  if (field.type === "range") return renderRangeField(field);
+                  if (field.type === "bool") return renderBoolField(field);
+                  return renderMultiField(field);
+                })}
+            </div>
           </div>
-          <div className="filters-actions">
+          <div className="filters-actions-bar">
             <button className="filters-clear" onClick={onClear}>
               Wyczysc filtry
             </button>

@@ -122,6 +122,8 @@
 .filters-panel {
   height: 100%;
   display: flex;
+  padding: 24px 24px 24px 48px;
+  box-sizing: border-box;
 }
 
 .filters-categories {
@@ -152,10 +154,12 @@
 .filters-content {
   flex: 1;
   background: rgba(30, 30, 30, 0.9);
-  padding: 24px;
+  padding: 24px 0 24px 24px;
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .filters-close {
@@ -169,10 +173,18 @@
   cursor: pointer;
 }
 
-.filters-fields {
+.filters-scroll {
+  flex: 1;
   overflow-y: auto;
-  max-height: calc(100% - 70px);
-  padding-right: 10px;
+  padding-right: 0;
+}
+
+.filters-fields {
+  padding-bottom: 12px;
+  padding-right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .filters-empty {
@@ -182,18 +194,19 @@
 }
 
 .filters-field {
-  margin-bottom: 18px;
+  margin-bottom: 0;
 }
 
 .filters-field-title {
   font-weight: 600;
   margin-bottom: 6px;
+  font-size: 1.05rem;
 }
 
 .filters-options {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px 12px;
 }
 
 .filters-option {
@@ -203,18 +216,29 @@
   font-size: 0.92rem;
 }
 
+.filters-boolean {
+  margin-top: 4px;
+}
+
 .filters-range {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
 }
 
 .filters-range input {
-  flex: 1;
+  width: 25%;
+  min-width: 0;
   background: #1f1f1f;
   border: 1px solid #444;
   border-radius: 6px;
   color: #fff;
   padding: 6px 8px;
+}
+
+.filters-range-separator {
+  color: #bdbdbd;
+  font-weight: 600;
 }
 
 .filters-field select {
@@ -225,13 +249,42 @@
   padding: 6px 8px;
 }
 
-.filters-actions {
-  position: absolute;
-  bottom: 18px;
-  right: 24px;
+.filters-actions-bar {
   display: flex;
   gap: 12px;
   align-items: center;
+  justify-content: flex-end;
+  padding: 12px 24px 0 0;
+  margin-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 1200px) {
+  .filters-panel {
+    padding-left: 28px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .filters-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .filters-range {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 800px) {
+  .filters-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .filters-panel {
+    padding: 16px;
+  }
 }
 
 .filters-clear {
@@ -241,6 +294,7 @@
   padding: 8px 12px;
   border-radius: 6px;
   cursor: pointer;
+  margin-top: 15px;
 }
 
 .filters-apply {
