@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    MotherboardConnector, GPUConnector, PSUConnector,
+    MotherboardConnector, GPUConnector,
     Manufacturer, Motherboard, Connector, Storage,
     RAMBase, Socket, Cooler, Build, Case, CPU, GPU,
     RAM, PSU, MotherboardFormFactor, PSUFormFactor,
@@ -74,15 +74,8 @@ class GPUAdmin(admin.ModelAdmin):
     search_fields = ("model_name",)
 
 
-class PSUConnectorInline(admin.TabularInline):
-    model = PSUConnector
-    extra = 1
-    autocomplete_fields = ["connector"]
-
-
 @admin.register(PSU)
 class PSUAdmin(admin.ModelAdmin):
-    inlines = [PSUConnectorInline]
     search_fields = ("name",)
 
 

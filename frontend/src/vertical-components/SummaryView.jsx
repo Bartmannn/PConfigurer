@@ -24,6 +24,13 @@ function SummaryView({
   filters,
   activeFilterCategory,
   onSelectFilterCategory,
+  builderOpen,
+  onOpenBuilder,
+  onCloseBuilder,
+  buildBudgets,
+  onSelectBudget,
+  builderLoading,
+  builderError,
 }) {
   const components = Object.keys(CATEGORY_LABELS);
 
@@ -32,6 +39,9 @@ function SummaryView({
       <div className="summary-toolbar">
         <button className="filters-toggle" onClick={onOpenFilters} aria-label="Otworz filtry">
           Filtry
+        </button>
+        <button className="builder-toggle" onClick={onOpenBuilder} aria-label="Buduj zestaw">
+          Buduj
         </button>
       </div>
       <h2>Twój zestaw</h2>
@@ -69,6 +79,29 @@ function SummaryView({
         onClose={onCloseFilters}
         onApply={onCloseFilters}
       />
+      {builderOpen && (
+        <div className="builder-overlay">
+          <div className="builder-modal">
+            <button className="builder-close" onClick={onCloseBuilder} aria-label="Zamknij budowanie">
+              x
+            </button>
+            <h3>Wybierz budżet</h3>
+            <div className="builder-budgets">
+              {buildBudgets.map((budget) => (
+                <button
+                  key={budget}
+                  className="builder-budget"
+                  onClick={() => onSelectBudget(budget)}
+                  disabled={builderLoading}
+                >
+                  {budget} zł
+                </button>
+              ))}
+            </div>
+            {builderError && <div className="builder-error">{builderError}</div>}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -4,7 +4,7 @@ from rest_framework import serializers
 from .models import (
     Manufacturer, CPU, GPU, Motherboard, RAM, Storage, PSU, Case, Cooler, Build,
     PSUFormFactor, MotherboardFormFactor, Connector, RAMBase, Socket, GPUConnector,
-    MotherboardConnector, PSUConnector, GraphicsChip
+    MotherboardConnector, GraphicsChip
 )
 
 class PSUFormFactorSerializer(serializers.ModelSerializer):
@@ -187,4 +187,3 @@ class BuildDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Build
         fields = "__all__"
-

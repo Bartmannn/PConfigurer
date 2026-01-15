@@ -30,6 +30,7 @@ from core.services.gpu_service import GPUService
 from core.services.psu_service import PSUService
 from core.services.storage_service import StorageService
 from core.services.case_service import CaseService
+from core.services.builder_service import BuildBuilderService
 
 from core import tools
 
@@ -264,11 +265,23 @@ class BuildViewSet(BaseViewSet):
     queryset = Build.objects.select_related(
         "cpu", "gpu", "motherboard", "ram", "storage", "psu", "case", "cooler", "user"
     ).all().order_by("-created_at")
+    search_fields = [
+        "name", "user__username",
+        "cpu__name", "gpu__name", "motherboard__name"
+    ]
+    ordering_fields = ["created_at", "id"]
 
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:
             return BuildDetailSerializer
         return BuildSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user_id = self.request.query_params.get("user_id")
+        if user_id:
+            qs = qs.filter(user_id=user_id)
+        return qs
 
 
 class FilterOptionsView(APIView):
@@ -411,15 +424,30 @@ class FilterOptionsView(APIView):
             "gpu": gpu_options,
         })
 
-    search_fields = [
-        "name", "user__username",
-        "cpu__name", "gpu__name", "motherboard__name"
-    ]
-    ordering_fields = ["created_at", "id"]
 
-    def get_queryset(self):
-        qs = super().get_queryset()
-        user_id = self.request.query_params.get("user_id")
-        if user_id:
-            qs = qs.filter(user_id=user_id)
-        return qs
+class BuildBuilderView(APIView):
+    def get(self, request):
+        budget_raw = request.query_params.get("budget")
+        if not budget_raw:
+            return Response({"error": "budget_required"}, status=400)
+
+        try:
+            budget = int(budget_raw)
+        except ValueError:
+            return Response({"error": "budget_invalid"}, status=400)
+
+        result = BuildBuilderService.build(budget)
+        if not result:
+            return Response({"error": "build_not_found"}, status=404)
+
+        return Response({
+            "budget": budget,
+            "total_price": str(result.total_price),
+            "cpu": CPUDetailSerializer(result.cpu).data,
+            "gpu": GPUDetailSerializer(result.gpu).data,
+            "mobo": MotherboardDetailSerializer(result.motherboard).data,
+            "ram": RAMDetailSerializer(result.ram).data,
+            "mem": StorageDetailSerializer(result.storage).data,
+            "psu": PSUDetailSerializer(result.psu).data,
+            "chassis": CaseDetailSerializer(result.case).data,
+        })

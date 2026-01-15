@@ -1,6 +1,8 @@
+from collections import defaultdict
+
 from core.models import (
     Motherboard, GPU, Case, GPUConnector, MotherboardConnector,
-    CPU, PSU, PSUConnector
+    CPU, PSU
 )
 from core.services.psu_service import PSUService
 from core import tools
@@ -52,24 +54,32 @@ class GPUService:
             )
 
         if psu_pk:
-            # TODO: This logic is a simplification. It checks if a GPU needs a connector type that the PSU
-            # doesn't have at all, but it doesn't properly handle quantity (e.g., GPU needs 2x8-pin, PSU has 1x8-pin).
-            
-            # Get the IDs of PCIe power connectors the PSU provides.
-            psu_power_connector_ids = PSUConnector.objects.filter(
-                psu__pk=psu_pk,
+            # TODO: This logic doesn't handle quantity (e.g., GPU needs 2x8-pin, PSU has 1x8-pin).
+            psu_connectors = (
+                PSU.objects.filter(pk=psu_pk)
+                .values_list("connectors", flat=True)
+                .first()
+            ) or []
+
+            gpu_connectors = GPUConnector.objects.filter(
+                gpu__in=qs,
                 connector__category="PCIe Power"
-            ).values_list("connector_id", flat=True)
-            
-            # Find all GPUs that require at least one PCIe power connector that the PSU *doesn't* have.
-            incompatible_gpus = GPU.objects.filter(
-                gpuconnector__connector__category="PCIe Power"
-            ).exclude(
-                gpuconnector__connector_id__in=psu_power_connector_ids
-            )
-            
-            # Exclude these incompatible GPUs from the main queryset.
-            qs = qs.exclude(pk__in=incompatible_gpus.values_list('pk', flat=True))
+            ).select_related("connector")
+
+            requirements_by_gpu = defaultdict(list)
+            for item in gpu_connectors:
+                requirements_by_gpu[item.gpu_id].append(item.connector)
+
+            compatible_ids = []
+            for gpu_id in qs.values_list("id", flat=True):
+                requirements = requirements_by_gpu.get(gpu_id, [])
+                if all(
+                    PSUService.psu_supports_connector(psu_connectors, req)
+                    for req in requirements
+                ):
+                    compatible_ids.append(gpu_id)
+
+            qs = qs.filter(pk__in=compatible_ids)
 
         if case_pk:
             case_max_gpu_length = (

@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import SummaryView from "./SummaryView";
 import SelectView from "./SelectView";
 import "./layout.css";
+import { ConfiguratorContext } from "../context/ConfiguratorContext";
 
 const buildRange = () => ({ min: "", max: "" });
 
@@ -69,12 +70,16 @@ const getDefaultFilters = () => ({
 });
 
 function ConfiguratorLayout() {
+  const { updateBuild } = useContext(ConfiguratorContext);
   const [activePanel, setActivePanel] = useState("summary");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [activeFilterCategory, setActiveFilterCategory] = useState("cpu");
   const [filters, setFilters] = useState(getDefaultFilters());
   const [filterOptions, setFilterOptions] = useState(null);
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [builderLoading, setBuilderLoading] = useState(false);
+  const [builderError, setBuilderError] = useState("");
 
   const [selected, setSelected] = useState({
     cpu: null,
@@ -85,6 +90,7 @@ function ConfiguratorLayout() {
     mem: null,
     chassis: null,
   });
+  const buildBudgets = [5000, 7000, 9000, 11000, 13000, 15000];
 
   const handleSelectCategory = (category) => {
     setSelectedCategory(category);
@@ -138,6 +144,57 @@ function ConfiguratorLayout() {
     setFilters(getDefaultFilters());
   };
 
+  const applyBuild = (data) => {
+    const next = {
+      cpu: data.cpu,
+      mobo: data.mobo,
+      ram: data.ram,
+      gpu: data.gpu,
+      psu: data.psu,
+      mem: data.mem,
+      chassis: data.chassis,
+    };
+    setSelected(next);
+    Object.entries(next).forEach(([key, value]) => {
+      updateBuild(key, value);
+    });
+  };
+
+  const handleBuildRequest = (budget) => {
+    setBuilderLoading(true);
+    setBuilderError("");
+    fetch(`http://localhost:8000/api/builder/?budget=${budget}`)
+      .then(async (res) => {
+        const data = await res.json();
+        if (!res.ok) {
+          const message = data?.error || "Brak zestawu dla wybranego budzetu.";
+          throw new Error(message);
+        }
+        return data;
+      })
+      .then((data) => {
+        applyBuild(data);
+        setBuilderOpen(false);
+      })
+      .catch((err) => {
+        setBuilderError(err.message || "Nie udalo sie zbudowac zestawu.");
+      })
+      .finally(() => {
+        setBuilderLoading(false);
+      });
+  };
+
+  const handleOpenBuilder = () => {
+    setBuilderError("");
+    setBuilderOpen(true);
+  };
+
+  const handleCloseBuilder = () => {
+    if (!builderLoading) {
+      setBuilderOpen(false);
+    }
+  };
+
   return (
     <div className={`configurator-container ${activePanel === "select" ? "show-select" : ""}`}>
       <SummaryView
@@ -152,6 +209,13 @@ function ConfiguratorLayout() {
         activeFilterCategory={activeFilterCategory}
         onSelectFilterCategory={setActiveFilterCategory}
         onFilterChange={handleFilterChange}
+        builderOpen={builderOpen && activePanel === "summary"}
+        onOpenBuilder={handleOpenBuilder}
+        onCloseBuilder={handleCloseBuilder}
+        buildBudgets={buildBudgets}
+        onSelectBudget={handleBuildRequest}
+        builderLoading={builderLoading}
+        builderError={builderError}
       />
       <SelectView
         key={selectedCategory} // Resetuj stan komponentu przy zmianie kategorii

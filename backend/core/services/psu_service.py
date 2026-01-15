@@ -1,9 +1,55 @@
 
-from core.models import PSU, PSUConnector, Case, Motherboard, GPU, MotherboardConnector, GPUConnector, CPU
+from core.models import PSU, Case, Motherboard, GPU, MotherboardConnector, GPUConnector, CPU
 
 class PSUService:
     
     SAFETY_FACTOR = 0.75
+
+    @staticmethod
+    def _coerce_number(value):
+        if value is None:
+            return None
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    @staticmethod
+    def _extract_requirement(requirement):
+        if isinstance(requirement, dict):
+            return (
+                requirement.get("category"),
+                requirement.get("lanes"),
+                requirement.get("version"),
+            )
+        return requirement.category, requirement.lanes, requirement.version
+
+    @staticmethod
+    def psu_supports_connector(psu_connectors, requirement) -> bool:
+        req_category, req_lanes, req_version = PSUService._extract_requirement(requirement)
+        if not req_category:
+            return False
+
+        req_lanes = PSUService._coerce_number(req_lanes)
+        req_version = PSUService._coerce_number(req_version)
+        for item in psu_connectors or []:
+            if not isinstance(item, dict):
+                continue
+            if item.get("category") != req_category:
+                continue
+
+            item_lanes = PSUService._coerce_number(item.get("lanes"))
+            if req_lanes is not None and (item_lanes is None or item_lanes < req_lanes):
+                continue
+
+            if req_version is not None:
+                item_version = PSUService._coerce_number(item.get("version"))
+                if item_version is None or item_version < req_version:
+                    continue
+
+            return True
+
+        return False
     
     @staticmethod
     def get_compatible_psus(data: dict[str, int]):
@@ -57,31 +103,35 @@ class PSUService:
             connector__is_power=True
         )
 
-        for conn in mobo_conns:
-            qs = qs.filter(
-                psuconnector__connector__category=conn.connector.category,
-                psuconnector__connector__lanes__gte=conn.connector.lanes
-            )
-            
-        return qs.distinct()
+        requirements = [conn.connector for conn in mobo_conns.select_related("connector")]
+        if not requirements:
+            return qs.distinct()
+
+        psu_ids = []
+        for psu_id, connectors in qs.values_list("id", "connectors"):
+            if all(PSUService.psu_supports_connector(connectors, req) for req in requirements):
+                psu_ids.append(psu_id)
+
+        return qs.filter(id__in=psu_ids).distinct()
     
     
     @staticmethod
     def filter_by_gpu(qs, gpu: GPU): # TODO: absolutnie mi się to nie podoba!
         
-        gpu_conns = GPUConnector.objects.filter(gpu=gpu, connector__category="PCIe Power")
-        
-        for conn in gpu_conns:
-            qs = qs.filter(
-                psuconnector__connector__category="PCIe Power",
-                psuconnector__connector__lanes__gte=conn.connector.lanes,
-            )
-            
-            if conn.connector.version:
-                qs = qs.filter(
-                    psuconnector__connector__version__gte=conn.connector.version
-                )
-                
-        return qs
+        gpu_conns = GPUConnector.objects.filter(
+            gpu=gpu,
+            connector__category="PCIe Power"
+        ).select_related("connector")
+
+        requirements = [conn.connector for conn in gpu_conns]
+        if not requirements:
+            return qs
+
+        psu_ids = []
+        for psu_id, connectors in qs.values_list("id", "connectors"):
+            if all(PSUService.psu_supports_connector(connectors, req) for req in requirements):
+                psu_ids.append(psu_id)
+
+        return qs.filter(id__in=psu_ids)
         
         

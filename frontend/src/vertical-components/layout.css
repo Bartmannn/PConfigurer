@@ -22,6 +22,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  gap: 10px;
   background: #1f1f1f;
   border: 1px solid #2b2b2b;
   border-radius: 10px;
@@ -111,6 +112,81 @@
 
 .filters-toggle:hover {
   background: #3a3a3a;
+}
+
+.builder-toggle {
+  background: #2f332f;
+  color: #e7efe7;
+  border: 1px solid #3b423b;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.builder-toggle:hover {
+  background: #3b423b;
+}
+
+.builder-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 10, 0.6);
+}
+
+.builder-modal {
+  width: min(420px, 90vw);
+  background: #1f1f1f;
+  border: 1px solid #2f2f2f;
+  border-radius: 12px;
+  padding: 20px 22px 18px;
+  position: relative;
+}
+
+.builder-modal h3 {
+  margin: 0 0 14px;
+  font-size: 1.1rem;
+}
+
+.builder-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  color: #cfcfcf;
+  font-size: 1.3rem;
+  cursor: pointer;
+}
+
+.builder-budgets {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.builder-budget {
+  background: #2b2b2b;
+  color: #f0f0f0;
+  border: 1px solid #3a3a3a;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.builder-budget:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.builder-error {
+  margin-top: 12px;
+  color: #e6b8b8;
+  font-size: 0.9rem;
 }
 
 .filters-overlay {

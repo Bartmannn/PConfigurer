@@ -283,7 +283,7 @@ class PSU(models.Model):
     manufacturer = models.ForeignKey(Manufacturer, on_delete=models.PROTECT)
     name = models.CharField(max_length=120)
     wattage = models.PositiveSmallIntegerField(help_text="Maximum output power (W)")
-    connectors = models.ManyToManyField("Connector", through="PSUConnector")
+    connectors = models.JSONField(default=list, blank=True)
     form_factor = models.ForeignKey(PSUFormFactor, on_delete=models.PROTECT)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
@@ -309,16 +309,21 @@ class PSU(models.Model):
 
     @property
     def connectors_info(self):
-        return [f"{item.quantity}x {item.connector}" for item in self.psuconnector_set.all()]
+        connectors = self.connectors or []
+        return [self._format_connector(item) for item in connectors if isinstance(item, dict)]
+
+    @staticmethod
+    def _format_connector(item: dict) -> str:
+        category = item.get("category", "?")
+        lanes = item.get("lanes")
+        version = item.get("version")
+        quantity = item.get("quantity", 1)
+        pin_suffix = f" {lanes} pin" if lanes else ""
+        version_suffix = f" {version}" if version else ""
+        return f"{quantity}x {category}{pin_suffix}{version_suffix}".strip()
 
     def __str__(self):
         return self.full_name
-
-
-class PSUConnector(models.Model):
-    psu = models.ForeignKey(PSU, on_delete=models.CASCADE)
-    connector = models.ForeignKey(Connector, on_delete=models.CASCADE)
-    quantity = models.PositiveSmallIntegerField()
 
 
 class GraphicsChip(models.Model):
