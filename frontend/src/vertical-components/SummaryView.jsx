@@ -1,3 +1,4 @@
+import BuildEvaluation from './BuildEvaluation';
 import FiltersPanel from "./FiltersPanel";
 
 const CATEGORY_LABELS = {
@@ -10,7 +11,40 @@ const CATEGORY_LABELS = {
   chassis: "Obudowy",
 };
 
-import BuildEvaluation from './BuildEvaluation';
+const PRICE_FORMATTER = new Intl.NumberFormat("pl-PL", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const parsePriceValue = (value) => {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string") {
+    const normalized = value.replace(/\s/g, "").replace(",", ".");
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const sumSelectedPrices = (selected) => {
+  let total = 0;
+  const addPrice = (item) => {
+    if (!item) return;
+    const parsed = parsePriceValue(item.price);
+    if (parsed !== null) total += parsed;
+  };
+
+  Object.values(selected || {}).forEach((item) => {
+    if (Array.isArray(item)) {
+      item.forEach(addPrice);
+    } else {
+      addPrice(item);
+    }
+  });
+
+  return total;
+};
 
 function SummaryView({
   selected,
@@ -33,6 +67,8 @@ function SummaryView({
   builderError,
 }) {
   const components = Object.keys(CATEGORY_LABELS);
+  const totalPrice = sumSelectedPrices(selected);
+  const formattedPrice = PRICE_FORMATTER.format(totalPrice);
 
   return (
     <div className="summary-view">
@@ -65,7 +101,13 @@ function SummaryView({
           </div>
         </div>
         <div className="summary-right">
-          <BuildEvaluation />
+          <div className="summary-suggestions">
+            <BuildEvaluation />
+          </div>
+          <div className="summary-price" aria-live="polite">
+            <span className="summary-price-label">Cena zestawu</span>
+            <span className="summary-price-value">{formattedPrice} zł</span>
+          </div>
         </div>
       </div>
       <FiltersPanel
