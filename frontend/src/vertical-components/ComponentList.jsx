@@ -9,6 +9,11 @@ function buildFilterQuery(filters) {
     if (typeof value === "string" && value.trim() === "") return;
     if (Array.isArray(value)) {
       if (value.length === 0) return;
+      if (key === "integrated_gpu") {
+        if (value.length !== 1) return;
+        parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value[0]))}`);
+        return;
+      }
       parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(value.join(","))}`);
       return;
     }

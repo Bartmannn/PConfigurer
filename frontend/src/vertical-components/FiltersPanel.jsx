@@ -25,7 +25,7 @@ const FILTER_FIELDS = {
     { key: "tdp", label: "TDP (W)", type: "range" },
     { key: "price", label: "Cena", type: "range" },
     { key: "cache_mb", label: "Cache (MB)", type: "multi" },
-    { key: "integrated_gpu", label: "Zintegrowana grafika", type: "bool" },
+    { key: "integrated_gpu", label: "Zintegrowana grafika", type: "bool-multi" },
   ],
   mobo: [
     { key: "manufacturer", label: "Producent", type: "multi" },
@@ -192,6 +192,40 @@ function FiltersPanel({
     );
   };
 
+  const renderBoolMultiField = (field) => {
+    const current = filters?.[activeCategory]?.[field.key] || [];
+    const options = [
+      { value: "true", label: "Tak" },
+      { value: "false", label: "Nie" },
+    ];
+
+    return (
+      <div className="filters-field" key={field.key}>
+        <div className="filters-field-title">{getFieldLabel(field)}</div>
+        <div className="filters-options filters-boolean">
+          {options.map((option) => {
+            const checked = current.includes(option.value);
+            return (
+              <label key={option.value} className="filters-option">
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() => {
+                    const next = checked
+                      ? current.filter((item) => item !== option.value)
+                      : [...current, option.value];
+                    onChange(activeCategory, field.key, next);
+                  }}
+                />
+                <span>{option.label}</span>
+              </label>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -219,6 +253,7 @@ function FiltersPanel({
                 fields.map((field) => {
                   if (field.type === "range") return renderRangeField(field);
                   if (field.type === "bool") return renderBoolField(field);
+                  if (field.type === "bool-multi") return renderBoolMultiField(field);
                   return renderMultiField(field);
                 })}
             </div>

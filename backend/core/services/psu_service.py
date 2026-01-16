@@ -1,4 +1,6 @@
 
+import re
+
 from core.models import PSU, Case, Motherboard, GPU, MotherboardConnector, GPUConnector, CPU
 
 class PSUService:
@@ -25,6 +27,51 @@ class PSUService:
         return requirement.category, requirement.lanes, requirement.version
 
     @staticmethod
+    def _parse_connector_string(value: str):
+        if not value:
+            return None
+        lowered = value.lower()
+        category = None
+
+        if "pcie" in lowered:
+            category = "PCIe Power"
+        elif "eps" in lowered or ("cpu" in lowered and "pin" in lowered):
+            category = "CPU Power"
+        elif "atx" in lowered:
+            category = "ATX Power"
+        elif "sata" in lowered:
+            category = "SATA Power"
+        elif "molex" in lowered:
+            category = "Molex"
+
+        if not category:
+            return None
+
+        lanes = None
+        pin_match = re.search(r"(\d+)\s*-?\s*pin", lowered)
+        if pin_match:
+            lanes = int(pin_match.group(1))
+        else:
+            plus_match = re.search(r"(\d+)\s*\+\s*(\d+)", lowered)
+            if plus_match:
+                lanes = int(plus_match.group(1)) + int(plus_match.group(2))
+
+        return category, lanes, None
+
+    @staticmethod
+    def _normalize_connector_item(item):
+        if isinstance(item, dict):
+            if item.get("category"):
+                return item.get("category"), item.get("lanes"), item.get("version")
+            text = item.get("name") or item.get("label") or item.get("connector")
+            if text:
+                return PSUService._parse_connector_string(text)
+            return None
+        if isinstance(item, str):
+            return PSUService._parse_connector_string(item)
+        return None
+
+    @staticmethod
     def psu_supports_connector(psu_connectors, requirement) -> bool:
         req_category, req_lanes, req_version = PSUService._extract_requirement(requirement)
         if not req_category:
@@ -33,18 +80,20 @@ class PSUService:
         req_lanes = PSUService._coerce_number(req_lanes)
         req_version = PSUService._coerce_number(req_version)
         for item in psu_connectors or []:
-            if not isinstance(item, dict):
+            normalized = PSUService._normalize_connector_item(item)
+            if not normalized:
                 continue
-            if item.get("category") != req_category:
+            item_category, item_lanes_raw, item_version_raw = normalized
+            if item_category != req_category:
                 continue
 
-            item_lanes = PSUService._coerce_number(item.get("lanes"))
+            item_lanes = PSUService._coerce_number(item_lanes_raw)
             if req_lanes is not None and (item_lanes is None or item_lanes < req_lanes):
                 continue
 
             if req_version is not None:
-                item_version = PSUService._coerce_number(item.get("version"))
-                if item_version is None or item_version < req_version:
+                item_version = PSUService._coerce_number(item_version_raw)
+                if item_version is not None and item_version < req_version:
                     continue
 
             return True

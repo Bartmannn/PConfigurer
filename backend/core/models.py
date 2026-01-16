@@ -289,11 +289,11 @@ class PSU(models.Model):
 
     @property
     def full_name(self):
-        return f"{self.manufacturer.name} {self.name} {self.wattage}W"
+        return f"{self.manufacturer.name} {self.name}"
 
     @property
     def short_name(self):
-        return f"{self.name} {self.wattage}W"
+        return self.full_name
 
     @property
     def manufacturer_name(self):

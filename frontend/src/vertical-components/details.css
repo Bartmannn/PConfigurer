@@ -53,7 +53,7 @@
 .details-table td.param {
   text-align: right;
   color: #a0a0a0;
-  width: 30%;
+  width: 35%;
   font-weight: 400;
   letter-spacing: 0.2px;
 }
@@ -64,14 +64,7 @@
   font-weight: 500;
   color: #f5f5f5;
   font-family: "JetBrains Mono", monospace;
-  width: 40%;
-}
-
-/* kolumna 3 — na razie placeholder na uwagi */
-.details-table td.note {
-  text-align: center;
-  color: #666;
-  width: 30%;
+  width: 65%;
 }
 
 .select-button {
@@ -89,16 +82,4 @@
 
 .select-button:hover {
   background-color: #45a049;
-}
-
-.details-table tbody tr.remark-score-good {
-  background-color: rgba(76, 175, 80, 0.1);
-}
-
-.details-table tbody tr.remark-score-ok {
-  background-color: rgba(255, 193, 7, 0.1);
-}
-
-.details-table tbody tr.remark-score-bad {
-  background-color: rgba(244, 67, 54, 0.1);
 }

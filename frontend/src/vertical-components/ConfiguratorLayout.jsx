@@ -23,7 +23,7 @@ const getDefaultFilters = () => ({
     tdp: buildRange(),
     price: buildRange(),
     cache_mb: [],
-    integrated_gpu: false,
+    integrated_gpu: [],
   },
   mobo: {
     manufacturer: [],
