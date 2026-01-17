@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import "./details.css";
+import { ConfiguratorContext } from "../context/ConfiguratorContext";
+import { generateRemarksForComponent } from "../services/remarksService";
 
 const RAM_BASE_REGEX = /(DDR[345])[^0-9]*([0-9]{3,5})/i;
 
@@ -331,6 +333,8 @@ const buildRows = (category, details) => {
 
 function ComponentDetails({ category, selectedItem, onSelect, onBack }) {
   const [details, setDetails] = useState(null);
+  const [remarks, setRemarks] = useState({});
+  const { currentBuild } = useContext(ConfiguratorContext);
 
   const handleSelect = () => {
     if (details) {
@@ -371,6 +375,15 @@ function ComponentDetails({ category, selectedItem, onSelect, onBack }) {
     fetchData();
   }, [category, selectedItem]);
 
+  useEffect(() => {
+    if (!details) {
+      setRemarks({});
+      return;
+    }
+    const generatedRemarks = generateRemarksForComponent(details, category, currentBuild);
+    setRemarks(generatedRemarks);
+  }, [details, category, currentBuild]);
+
   if (!details)
     return <div className="component-details">Wybierz podzespół z listy.</div>;
 
@@ -384,10 +397,13 @@ function ComponentDetails({ category, selectedItem, onSelect, onBack }) {
           <tr>
             <th>Parametr</th>
             <th>Wartość</th>
+            <th>Uwagi</th>
           </tr>
         </thead>
         <tbody>
           {rows.map(({ key, label, value }) => {
+            const remarkInfo = remarks[key];
+            const scoreClass = remarkInfo?.score ? `remark-score-${remarkInfo.score}` : "";
             const renderValue = () => {
               if (Array.isArray(value)) {
                 return value.map((item, index) => <div key={`${key}-${index}`}>{item}</div>);
@@ -402,9 +418,10 @@ function ComponentDetails({ category, selectedItem, onSelect, onBack }) {
             };
 
             return (
-              <tr key={key}>
+              <tr key={key} className={scoreClass}>
                 <td className="param">{label}</td>
                 <td className="value">{renderValue()}</td>
+                <td className="note">{remarkInfo?.text || "—"}</td>
               </tr>
             );
           })}

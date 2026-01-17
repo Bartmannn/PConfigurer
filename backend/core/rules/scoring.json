@@ -1,0 +1,842 @@
+{
+  "schema_version": 1,
+  "meta": {
+    "source": "frontend/src/services/BuildEvaluationService.js",
+    "notes": [
+      "Rules mirror current build evaluation logic.",
+      "Some rules use non-numeric comparisons or multiple fields; compiler will need to support these ops.",
+      "Derived field used: derived.cpu_gpu_tier_delta = cpu.tier_score - gpu.tier_score."
+    ],
+    "derived_fields": {
+      "derived.cpu_gpu_tier_delta": "cpu.tier_score - gpu.tier_score"
+    }
+  },
+  "profiles": {
+    "gaming": {
+      "id": "gaming",
+      "name": "Gry komputerowe",
+      "description": "Zestaw przeznaczony do uruchamiania gier komputerowych.",
+      "rules": [
+        {
+          "id": "gpu",
+          "logic": [
+            {
+              "path": "gpu",
+              "op": "missing",
+              "score": 0,
+              "feedback": "Wybierz karte grafiki."
+            },
+            {
+              "path": "gpu.tier_score",
+              "op": "<=",
+              "value": 2,
+              "score": 0,
+              "feedback": "Wybrana karta grafiki moze okazac sie za slaba."
+            },
+            {
+              "path": "gpu.tier_score",
+              "op": "==",
+              "value": 3,
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "path": "gpu.tier_score",
+              "op": ">=",
+              "value": 8,
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "path": "gpu.tier_score",
+              "op": "<=",
+              "value": 5,
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "path": "gpu.tier_score",
+              "op": "==",
+              "value": 7,
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "op": "default",
+              "score": 15,
+              "feedback": ""
+            }
+          ]
+        },
+        {
+          "id": "ram_capacity",
+          "logic": [
+            {
+              "path": "ram.total_capacity",
+              "op": "missing",
+              "score": 0,
+              "feedback": "Wybierz pamiec RAM."
+            },
+            {
+              "path": "ram.total_capacity",
+              "op": "<",
+              "value": 8,
+              "score": -10,
+              "feedback": "Mniej niz 8GB RAM'u nie nadaje sie do gier!"
+            },
+            {
+              "path": "ram.total_capacity",
+              "op": "==",
+              "value": 8,
+              "score": -5,
+              "feedback": "8GB RAM to teraz za malo."
+            },
+            {
+              "path": "ram.total_capacity",
+              "op": "<",
+              "value": 16,
+              "score": 0,
+              "feedback": "Niecale 16GB RAM moze okazac sie niewystarczajace."
+            },
+            {
+              "path": "ram.total_capacity",
+              "op": "==",
+              "value": 16,
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "path": "ram.total_capacity",
+              "op": ">",
+              "value": 16,
+              "score": 8,
+              "feedback": ""
+            },
+            {
+              "path": "ram.total_capacity",
+              "op": "==",
+              "value": 32,
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "op": "default",
+              "score": -5,
+              "feedback": "Ponad 32GB RAM'u jest niepotrzebnym wydatkiem!"
+            }
+          ]
+        },
+        {
+          "id": "cpu",
+          "logic": [
+            {
+              "path": "cpu",
+              "op": "missing",
+              "score": 0,
+              "feedback": "Wybierz procesor."
+            },
+            {
+              "path": "cpu.tier_score",
+              "op": "<=",
+              "value": 2,
+              "score": 0,
+              "feedback": "Wybrany procesor moze okazac sie niewystarczajacy."
+            },
+            {
+              "path": "cpu.tier_score",
+              "op": "<=",
+              "value": 4,
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "path": "cpu.tier_score",
+              "op": "==",
+              "value": 8,
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "path": "cpu.tier_score",
+              "op": "==",
+              "value": 5,
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "path": "cpu.tier_score",
+              "op": "==",
+              "value": 7,
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "path": "cpu.tier_score",
+              "op": "==",
+              "value": 6,
+              "score": 15,
+              "feedback": ""
+            },
+            {
+              "op": "default",
+              "score": -5,
+              "feedback": "Nie potrzebujesz tak dobrego procesora."
+            }
+          ]
+        },
+        {
+          "id": "bottleneck",
+          "logic": [
+            {
+              "path": "cpu",
+              "op": "missing",
+              "score": 0,
+              "feedback": ""
+            },
+            {
+              "path": "gpu",
+              "op": "missing",
+              "score": 0,
+              "feedback": ""
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": ">=",
+              "value": 5,
+              "score": -15,
+              "feedback": "Wybrany procesor jest zbyt potezny dla tej karty grafiki!"
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "<=",
+              "value": -5,
+              "score": -15,
+              "feedback": "Wybrana karta graficzna jest zbyt potezna dla tego procesora!"
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "==",
+              "value": 4,
+              "score": -5,
+              "feedback": "Wybrany procesor jest za dobry dla tej grafiki."
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "==",
+              "value": -4,
+              "score": -5,
+              "feedback": "Wybrana grafika jest za dobra dla tego procesora."
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "==",
+              "value": 3,
+              "score": 0,
+              "feedback": "Grafika moze spowalniac procesor."
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "==",
+              "value": -3,
+              "score": 0,
+              "feedback": "Procesor moze spowalniac grafike."
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "==",
+              "value": 2,
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "==",
+              "value": -2,
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "==",
+              "value": 1,
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "==",
+              "value": -1,
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "op": "default",
+              "score": 15,
+              "feedback": ""
+            }
+          ]
+        },
+        {
+          "id": "storage_type",
+          "logic": [
+            {
+              "path": "mem",
+              "op": "missing",
+              "score": 0,
+              "feedback": "Wybierz dysk."
+            },
+            {
+              "path": "mem.type",
+              "op": "==",
+              "value": "NVMe",
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "path": "mem.type",
+              "op": "==",
+              "value": "SATA",
+              "score": 0,
+              "feedback": "Dysk SSD moze byc niewystarczajaco szybki do gier."
+            },
+            {
+              "op": "default",
+              "score": -10,
+              "feedback": "Dysk HDD jest zbyt powolny do gier."
+            }
+          ]
+        },
+        {
+          "id": "storage_capacity",
+          "logic": [
+            {
+              "path": "mem",
+              "op": "missing",
+              "score": 0,
+              "feedback": ""
+            },
+            {
+              "path": "mem.capacity_gb",
+              "op": "<",
+              "value": 1000,
+              "score": -5,
+              "feedback": "Mniej niz 1000GB (1TB) na dysku to za malo."
+            },
+            {
+              "path": "mem.capacity_gb",
+              "op": "==",
+              "value": 1000,
+              "score": 0,
+              "feedback": "1000GB (1TB) moze nie wystarczyc."
+            },
+            {
+              "path": "mem.capacity_gb",
+              "op": "<=",
+              "value": 2000,
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "op": "default",
+              "score": -5,
+              "feedback": "Ponad 2TB (2000GB) jest niepotrzebne."
+            }
+          ]
+        }
+      ]
+    },
+    "office": {
+      "id": "office",
+      "name": "Praca Biurowa",
+      "description": "Zestaw do codziennych zadan, pracy z dokumentami i przegladania internetu.",
+      "rules": [
+        {
+          "id": "gpu",
+          "logic": [
+            {
+              "when": [
+                { "path": "gpu", "op": "missing" },
+                { "path": "cpu.integrated_gpu", "op": "==", "value": true }
+              ],
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "when": [
+                { "path": "gpu", "op": "present" },
+                { "path": "cpu.integrated_gpu", "op": "==", "value": true }
+              ],
+              "score": -5,
+              "feedback": "Nie potrzebujesz dedykowanej karty graficznej, masz ja zintegrowana w procesorze."
+            },
+            {
+              "path": "gpu.tier_score",
+              "op": "<=",
+              "value": 1,
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "path": "gpu.tier_score",
+              "op": "<",
+              "value": 4,
+              "score": -5,
+              "feedback": "Przeplacasz na karcie grafiki."
+            },
+            {
+              "path": "gpu.tier_score",
+              "op": ">=",
+              "value": 4,
+              "score": -10,
+              "feedback": "Ta grafika nie jest do biura!"
+            },
+            {
+              "op": "default",
+              "score": 0,
+              "feedback": "Wybierz dedykowana karte grafiki lub procesor ze zinstegrowana grafika."
+            }
+          ]
+        },
+        {
+          "id": "ram_capacity",
+          "logic": [
+            {
+              "path": "ram.total_capacity",
+              "op": "missing",
+              "score": 0,
+              "feedback": "Wybierz pamiec RAM."
+            },
+            {
+              "path": "ram.total_capacity",
+              "op": "<",
+              "value": 8,
+              "score": -10,
+              "feedback": "Mniej niz 8GB RAM'u nie ma sensu!"
+            },
+            {
+              "path": "ram.total_capacity",
+              "op": "==",
+              "value": 8,
+              "score": -5,
+              "feedback": "8GB RAM to teraz za malo."
+            },
+            {
+              "path": "ram.total_capacity",
+              "op": "<",
+              "value": 16,
+              "score": 5,
+              "feedback": "Niecale 16GB RAM moze okazac sie niewystarczajace."
+            },
+            {
+              "path": "ram.total_capacity",
+              "op": "==",
+              "value": 16,
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "op": "default",
+              "score": -5,
+              "feedback": "Ponad 16GB RAM'u jest niepotrzebnym wydatkiem!"
+            }
+          ]
+        },
+        {
+          "id": "cpu",
+          "logic": [
+            {
+              "path": "cpu",
+              "op": "missing",
+              "score": 0,
+              "feedback": "Wybierz procesor."
+            },
+            {
+              "path": "cpu.tier_score",
+              "op": "<=",
+              "value": 3,
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "path": "cpu.tier_score",
+              "op": "==",
+              "value": 7,
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "path": "cpu.tier_score",
+              "op": "==",
+              "value": 4,
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "path": "cpu.tier_score",
+              "op": "==",
+              "value": 6,
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "path": "cpu.tier_score",
+              "op": "==",
+              "value": 5,
+              "score": 15,
+              "feedback": ""
+            },
+            {
+              "op": "default",
+              "score": -5,
+              "feedback": "Przeplacasz na procesorze."
+            }
+          ]
+        },
+        {
+          "id": "storage_type",
+          "logic": [
+            {
+              "path": "mem",
+              "op": "missing",
+              "score": 0,
+              "feedback": "Wybierz dysk."
+            },
+            {
+              "path": "mem.type",
+              "op": "==",
+              "value": "NVMe",
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "path": "mem.type",
+              "op": "==",
+              "value": "SATA",
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "op": "default",
+              "score": -5,
+              "feedback": "Dysk HDD jest zbyt powolny na dzisiejsze standardy."
+            }
+          ]
+        },
+        {
+          "id": "storage_capacity",
+          "logic": [
+            {
+              "path": "mem",
+              "op": "missing",
+              "score": 0,
+              "feedback": ""
+            },
+            {
+              "path": "mem.capacity_gb",
+              "op": "<",
+              "value": 500,
+              "score": -5,
+              "feedback": "Mniej niz 500GB na dysku moze okazac sie niewystarczajace."
+            },
+            {
+              "path": "mem.capacity_gb",
+              "op": "<=",
+              "value": 1000,
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "op": "default",
+              "score": -5,
+              "feedback": "Ponad 1TB (1000GB) jest niepotrzebny."
+            }
+          ]
+        }
+      ]
+    },
+    "professional": {
+      "id": "professional",
+      "name": "Zestaw profesjonalny",
+      "description": "Zestaw przeznaczony dla pracy z grafika komputerowa i innych zadan specjalnych.",
+      "rules": [
+        {
+          "id": "gpu",
+          "logic": [
+            {
+              "path": "gpu",
+              "op": "missing",
+              "score": 0,
+              "feedback": "Wybierz karte graficzna."
+            },
+            {
+              "path": "gpu.tier_score",
+              "op": "<=",
+              "value": 2,
+              "score": -5,
+              "feedback": "Wybrana karta grafiki jest za slaba."
+            },
+            {
+              "path": "gpu.tier_score",
+              "op": "<=",
+              "value": 4,
+              "score": 0,
+              "feedback": "Wybrana karta graficzna moze okazac sie zbyt slaba."
+            },
+            {
+              "path": "gpu.tier_score",
+              "op": "<=",
+              "value": 6,
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "path": "gpu.tier_score",
+              "op": "<=",
+              "value": 8,
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "op": "default",
+              "score": 15,
+              "feedback": ""
+            }
+          ]
+        },
+        {
+          "id": "ram_capacity",
+          "logic": [
+            {
+              "path": "ram.total_capacity",
+              "op": "missing",
+              "score": 0,
+              "feedback": "Wybierz pamiec RAM."
+            },
+            {
+              "path": "ram.total_capacity",
+              "op": "<",
+              "value": 16,
+              "score": -15,
+              "feedback": "Niecale 16GB RAM, to zdecydowanie za malo!"
+            },
+            {
+              "path": "ram.total_capacity",
+              "op": "<",
+              "value": 32,
+              "score": -5,
+              "feedback": "Niecale 32GB RAM, moze okazac sie niewystarczajace."
+            },
+            {
+              "path": "ram.total_capacity",
+              "op": "==",
+              "value": 32,
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "path": "ram.total_capacity",
+              "op": "<=",
+              "value": 64,
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "op": "default",
+              "score": 15,
+              "feedback": ""
+            }
+          ]
+        },
+        {
+          "id": "cpu",
+          "logic": [
+            {
+              "path": "cpu",
+              "op": "missing",
+              "score": 0,
+              "feedback": "Wybierz procesor."
+            },
+            {
+              "path": "cpu.tier_score",
+              "op": "<=",
+              "value": 4,
+              "score": 0,
+              "feedback": "Wybrany procesor jest zbyt slaby!"
+            },
+            {
+              "path": "cpu.tier_score",
+              "op": "<=",
+              "value": 6,
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "path": "cpu.tier_score",
+              "op": "<=",
+              "value": 8,
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "op": "default",
+              "score": 15,
+              "feedback": ""
+            }
+          ]
+        },
+        {
+          "id": "bottleneck",
+          "logic": [
+            {
+              "path": "cpu",
+              "op": "missing",
+              "score": 0,
+              "feedback": ""
+            },
+            {
+              "path": "gpu",
+              "op": "missing",
+              "score": 0,
+              "feedback": ""
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": ">=",
+              "value": 5,
+              "score": -15,
+              "feedback": "Wybrany procesor jest zbyt potezny dla tej karty grafiki!"
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "<=",
+              "value": -5,
+              "score": -15,
+              "feedback": "Wybrana karta graficzna jest zbyt potezna dla tego procesora!"
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "==",
+              "value": 4,
+              "score": -5,
+              "feedback": "Wybrany procesor jest za dobry dla tej grafiki."
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "==",
+              "value": -4,
+              "score": -5,
+              "feedback": "Wybrana grafika jest za dobra dla tego procesora."
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "==",
+              "value": 3,
+              "score": 0,
+              "feedback": "Grafika moze spowalniac procesor."
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "==",
+              "value": -3,
+              "score": 0,
+              "feedback": "Procesor moze spowalniac grafike."
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "==",
+              "value": 2,
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "==",
+              "value": -2,
+              "score": 5,
+              "feedback": ""
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "==",
+              "value": 1,
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "path": "derived.cpu_gpu_tier_delta",
+              "op": "==",
+              "value": -1,
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "op": "default",
+              "score": 15,
+              "feedback": ""
+            }
+          ]
+        },
+        {
+          "id": "storage_type",
+          "logic": [
+            {
+              "path": "mem",
+              "op": "missing",
+              "score": 0,
+              "feedback": "Wybierz dysk."
+            },
+            {
+              "path": "mem.type",
+              "op": "==",
+              "value": "NVMe",
+              "score": 10,
+              "feedback": ""
+            },
+            {
+              "path": "mem.type",
+              "op": "==",
+              "value": "SATA",
+              "score": -5,
+              "feedback": "Dysk SSD sie tutaj nie nadaje."
+            },
+            {
+              "op": "default",
+              "score": -15,
+              "feedback": "Dysk HDD sie tutaj nie nadaje."
+            }
+          ]
+        },
+        {
+          "id": "storage_capacity",
+          "logic": [
+            {
+              "path": "mem",
+              "op": "missing",
+              "score": 0,
+              "feedback": ""
+            },
+            {
+              "path": "mem.capacity_gb",
+              "op": "<",
+              "value": 2000,
+              "score": -10,
+              "feedback": "Mniej niz 2000GB (2TB) na dysku to zdecydowanie za malo."
+            },
+            {
+              "path": "mem.capacity_gb",
+              "op": "<",
+              "value": 4000,
+              "score": 0,
+              "feedback": "Mniej niz 4000GB (4TB) moze nie wystarczyc."
+            },
+            {
+              "op": "default",
+              "score": 10,
+              "feedback": ""
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
