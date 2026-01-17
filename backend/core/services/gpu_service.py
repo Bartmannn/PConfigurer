@@ -54,12 +54,15 @@ class GPUService:
             )
 
         if psu_pk:
-            # TODO: This logic doesn't handle quantity (e.g., GPU needs 2x8-pin, PSU has 1x8-pin).
             psu_connectors = (
                 PSU.objects.filter(pk=psu_pk)
                 .values_list("connectors", flat=True)
                 .first()
             ) or []
+
+            available_pins = PSUService.get_pcie_pins_list(psu_connectors)
+            if available_pins is None:
+                return GPU.objects.none()
 
             gpu_connectors = GPUConnector.objects.filter(
                 gpu__in=qs,
@@ -68,15 +71,15 @@ class GPUService:
 
             requirements_by_gpu = defaultdict(list)
             for item in gpu_connectors:
-                requirements_by_gpu[item.gpu_id].append(item.connector)
+                requirements_by_gpu[item.gpu_id].append(item)
 
             compatible_ids = []
             for gpu_id in qs.values_list("id", flat=True):
                 requirements = requirements_by_gpu.get(gpu_id, [])
-                if all(
-                    PSUService.psu_supports_connector(psu_connectors, req)
-                    for req in requirements
-                ):
+                required_pins = PSUService.get_gpu_pcie_pins_list(requirements)
+                if required_pins is None:
+                    continue
+                if PSUService.can_satisfy_gpu_power(available_pins, required_pins):
                     compatible_ids.append(gpu_id)
 
             qs = qs.filter(pk__in=compatible_ids)

@@ -7,6 +7,9 @@ import { ConfiguratorContext } from "../context/ConfiguratorContext";
 const buildRange = () => ({ min: "", max: "" });
 
 const getDefaultFilters = () => ({
+  general: {
+    keep_incompatible: false,
+  },
   cpu: {
     family: [],
     generation: [],

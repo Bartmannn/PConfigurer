@@ -33,6 +33,160 @@ const toNumber = (value) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+const parsePsuConnectorCategory = (value) => {
+  if (!value) return null;
+  const lowered = String(value).toLowerCase();
+  if (lowered.includes("pcie") || lowered.includes("pci-e")) {
+    return "PCIe Power";
+  }
+  return null;
+};
+
+const parsePsuConnectorPins = (value) => {
+  if (!value) return null;
+  const text = String(value);
+  const pinMatch = text.match(/(\d+)\s*-?\s*pin/i);
+  if (pinMatch) return toNumber(pinMatch[1]);
+  const plusMatch = text.match(/(\d+)\s*\+\s*(\d+)/);
+  if (plusMatch) {
+    const left = toNumber(plusMatch[1]);
+    const right = toNumber(plusMatch[2]);
+    if (left !== null && right !== null) return left + right;
+  }
+  return null;
+};
+
+const normalizePsuConnector = (item) => {
+  if (!item) return null;
+  if (typeof item === "string") {
+    return {
+      category: parsePsuConnectorCategory(item),
+      pins: parsePsuConnectorPins(item),
+      quantity: 1,
+    };
+  }
+  if (typeof item === "object") {
+    const name = item.name || item.label || item.connector;
+    const category = item.category || parsePsuConnectorCategory(name);
+    if (!category) return null;
+    const quantity = toNumber(item.quantity ?? item.count ?? item.value) ?? 1;
+    const pins = toNumber(item.lanes ?? item.pins ?? item.pin_count) ?? parsePsuConnectorPins(name);
+    return { category, pins, quantity };
+  }
+  return null;
+};
+
+const getPsuPciePinsList = (psu) => {
+  if (!psu || !psu.connectors) return null;
+  const connectors = Array.isArray(psu.connectors)
+    ? psu.connectors
+    : typeof psu.connectors === "object"
+      ? Object.entries(psu.connectors).map(([name, count]) => ({ name, quantity: count }))
+      : [];
+  const pins = [];
+  let hasData = false;
+  let hasMissing = false;
+
+  connectors.forEach((item) => {
+    const normalized = normalizePsuConnector(item);
+    if (!normalized || normalized.category !== "PCIe Power") return;
+    const connectorPins = toNumber(normalized.pins);
+    const quantity = toNumber(normalized.quantity) ?? 1;
+    hasData = true;
+    if (connectorPins === null) {
+      hasMissing = true;
+      return;
+    }
+    for (let i = 0; i < quantity; i += 1) {
+      pins.push(connectorPins);
+    }
+  });
+
+  if (!hasData) return [];
+  if (hasMissing) return null;
+  return pins;
+};
+
+const getGpuRequiredPinsList = (gpu) => {
+  if (!gpu || !Array.isArray(gpu.power_connectors)) return null;
+  if (gpu.power_connectors.length === 0) return [];
+  const pins = [];
+
+  for (const item of gpu.power_connectors) {
+    if (!item) continue;
+    const connectorPins = toNumber(item.pins);
+    const quantity = toNumber(item.quantity) ?? 1;
+    if (connectorPins === null) {
+      return null;
+    }
+    for (let i = 0; i < quantity; i += 1) {
+      pins.push(connectorPins);
+    }
+  }
+
+  return pins;
+};
+
+const findBestSubsetIndices = (values, target) => {
+  let bestSum = Infinity;
+  let best = null;
+
+  const walk = (start, sum, chosen) => {
+    if (sum >= target) {
+      if (sum < bestSum) {
+        bestSum = sum;
+        best = [...chosen];
+      }
+      return;
+    }
+    if (start >= values.length) return;
+    if (sum >= bestSum) return;
+
+    for (let i = start; i < values.length; i += 1) {
+      chosen.push(i);
+      walk(i + 1, sum + values[i], chosen);
+      chosen.pop();
+    }
+  };
+
+  walk(0, 0, []);
+  return best;
+};
+
+const canSatisfyGpuPower = (availablePins, requiredPins) => {
+  if (availablePins === null || requiredPins === null) return null;
+  if (requiredPins.length === 0) return true;
+  if (availablePins.length === 0) return false;
+
+  let available = [...availablePins].sort((a, b) => b - a);
+  const required = [...requiredPins].sort((a, b) => b - a);
+
+  for (const req of required) {
+    const subset = findBestSubsetIndices(available, req);
+    if (!subset) return false;
+    const toRemove = new Set(subset);
+    available = available.filter((_, index) => !toRemove.has(index));
+  }
+
+  return true;
+};
+
+const formatPinList = (pins) => {
+  if (pins === null) return "brak danych";
+  if (pins.length === 0) return "brak";
+  const counts = new Map();
+  pins.forEach((pin) => {
+    if (pin === null || pin === undefined) return;
+    const key = Number(pin);
+    counts.set(key, (counts.get(key) || 0) + 1);
+  });
+
+  return Array.from(counts.entries())
+    .sort((a, b) => b[0] - a[0])
+    .map(([pin, count]) => `${pin}-pin x${count}`)
+    .join(", ");
+};
+
 const buildRamSupportMap = (supportedRam) => {
   const map = new Map();
   if (!Array.isArray(supportedRam)) return map;
@@ -296,6 +450,38 @@ const generateGpuRemarks = (gpu, build) => {
     remarks.tdp = { score: null, text: "Zasilacz nie zostal jeszcze wybrany." };
   }
 
+  if (psu) {
+    const requiredPins = getGpuRequiredPinsList(gpu);
+    const availablePins = getPsuPciePinsList(psu);
+    if (requiredPins === null || availablePins === null) {
+      remarks.power_connectors = {
+        score: "bad",
+        text: "Brak danych o zlaczach zasilania GPU lub PSU.",
+      };
+    } else if (requiredPins.length === 0) {
+      remarks.power_connectors = {
+        score: "good",
+        text: "GPU nie wymaga dodatkowego zasilania.",
+      };
+    } else if (canSatisfyGpuPower(availablePins, requiredPins)) {
+      remarks.power_connectors = {
+        score: "good",
+        text: `Dostepne zlacza PCIe: ${formatPinList(availablePins)}, wymagane: ${formatPinList(
+          requiredPins
+        )}.`,
+      };
+    } else {
+      remarks.power_connectors = {
+        score: "bad",
+        text: `Za malo zlaczy PCIe (dostepne ${formatPinList(availablePins)}, wymagane ${formatPinList(
+          requiredPins
+        )}).`,
+      };
+    }
+  } else {
+    remarks.power_connectors = { score: null, text: "Zasilacz nie zostal jeszcze wybrany." };
+  }
+
   const cpuMax = getMaxPcieVersionFromCpu(cpu);
   const moboMax = getMaxPcieVersionFromMobo(mobo);
   const gpuVer = getGpuPcieVersion(gpu);
@@ -393,6 +579,38 @@ const generatePsuRemarks = (psu, build) => {
     remarks.wattage = { score: null, text: "GPU nie podaje rekomendowanej mocy." };
   } else {
     remarks.wattage = { score: null, text: "Karta graficzna nie zostala wybrana." };
+  }
+
+  if (gpu) {
+    const requiredPins = getGpuRequiredPinsList(gpu);
+    const availablePins = getPsuPciePinsList(psu);
+    if (requiredPins === null || availablePins === null) {
+      remarks.connectors = {
+        score: "bad",
+        text: "Brak danych o zlaczach zasilania GPU lub PSU.",
+      };
+    } else if (requiredPins.length === 0) {
+      remarks.connectors = {
+        score: "good",
+        text: "GPU nie wymaga dodatkowego zasilania.",
+      };
+    } else if (canSatisfyGpuPower(availablePins, requiredPins)) {
+      remarks.connectors = {
+        score: "good",
+        text: `Dostepne zlacza PCIe: ${formatPinList(availablePins)}, wymagane: ${formatPinList(
+          requiredPins
+        )}.`,
+      };
+    } else {
+      remarks.connectors = {
+        score: "bad",
+        text: `Za malo zlaczy PCIe (dostepne ${formatPinList(availablePins)}, wymagane ${formatPinList(
+          requiredPins
+        )}).`,
+      };
+    }
+  } else {
+    remarks.connectors = { score: null, text: "Karta graficzna nie zostala wybrana." };
   }
 
   if (chassis?.psu_form_factor_support && psu.form_factor) {

@@ -72,6 +72,126 @@ class PSUService:
         return None
 
     @staticmethod
+    def _extract_connector_quantity(item):
+        if isinstance(item, dict):
+            return item.get("quantity") or item.get("count") or item.get("value") or 1
+        return 1
+
+    @staticmethod
+    def get_pcie_pins_list(connectors):
+        if not connectors:
+            return []
+        if isinstance(connectors, dict):
+            connectors = [
+                {"name": name, "quantity": count} for name, count in connectors.items()
+            ]
+        pins = []
+        has_data = False
+        missing = False
+
+        for item in connectors:
+            category = None
+            lanes = None
+            if isinstance(item, dict):
+                category = item.get("category")
+                lanes = item.get("lanes")
+                if not category or lanes is None:
+                    text = item.get("name") or item.get("label") or item.get("connector")
+                    parsed = PSUService._parse_connector_string(text)
+                    if parsed:
+                        category = category or parsed[0]
+                        lanes = lanes if lanes is not None else parsed[1]
+            elif isinstance(item, str):
+                parsed = PSUService._parse_connector_string(item)
+                if parsed:
+                    category, lanes, _ = parsed
+
+            if category != "PCIe Power":
+                continue
+
+            has_data = True
+            quantity = PSUService._coerce_number(PSUService._extract_connector_quantity(item)) or 1
+            lanes = PSUService._coerce_number(lanes)
+            if lanes is None:
+                missing = True
+                continue
+
+            for _ in range(int(quantity)):
+                pins.append(int(lanes))
+
+        if not has_data:
+            return []
+        if missing:
+            return None
+        return pins
+
+    @staticmethod
+    def get_gpu_pcie_pins_list(requirements):
+        if not requirements:
+            return []
+        pins = []
+        missing = False
+        for req in requirements:
+            connector = req.connector if hasattr(req, "connector") else req
+            lanes = PSUService._coerce_number(getattr(connector, "lanes", None))
+            quantity = PSUService._coerce_number(getattr(req, "quantity", None)) or 1
+            if lanes is None:
+                missing = True
+                continue
+            for _ in range(int(quantity)):
+                pins.append(int(lanes))
+
+        if missing:
+            return None
+        return pins
+
+    @staticmethod
+    def _find_best_subset(values, target):
+        best_sum = None
+        best = None
+
+        def walk(start, total, chosen):
+            nonlocal best_sum, best
+            if total >= target:
+                if best_sum is None or total < best_sum:
+                    best_sum = total
+                    best = list(chosen)
+                return
+            if start >= len(values):
+                return
+            if best_sum is not None and total >= best_sum:
+                return
+
+            for i in range(start, len(values)):
+                chosen.append(i)
+                walk(i + 1, total + values[i], chosen)
+                chosen.pop()
+
+        walk(0, 0, [])
+        return best
+
+    @staticmethod
+    def can_satisfy_gpu_power(available_pins, required_pins):
+        if available_pins is None or required_pins is None:
+            return False
+        if not required_pins:
+            return True
+        if not available_pins:
+            return False
+
+        available = sorted(available_pins, reverse=True)
+        required = sorted(required_pins, reverse=True)
+
+        for req in required:
+            subset = PSUService._find_best_subset(available, req)
+            if not subset:
+                return False
+            for index in sorted(subset, reverse=True):
+                del available[index]
+
+        return True
+
+    @staticmethod
     def psu_supports_connector(psu_connectors, requirement) -> bool:
         req_category, req_lanes, req_version = PSUService._extract_requirement(requirement)
         if not req_category:
@@ -172,13 +292,16 @@ class PSUService:
             connector__category="PCIe Power"
         ).select_related("connector")
 
-        requirements = [conn.connector for conn in gpu_conns]
-        if not requirements:
+        required_pins = PSUService.get_gpu_pcie_pins_list(gpu_conns)
+        if required_pins is None:
+            return qs.none()
+        if not required_pins:
             return qs
 
         psu_ids = []
         for psu_id, connectors in qs.values_list("id", "connectors"):
-            if all(PSUService.psu_supports_connector(connectors, req) for req in requirements):
+            available_pins = PSUService.get_pcie_pins_list(connectors)
+            if PSUService.can_satisfy_gpu_power(available_pins, required_pins):
                 psu_ids.append(psu_id)
 
         return qs.filter(id__in=psu_ids)

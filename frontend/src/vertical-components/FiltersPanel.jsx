@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 
 const CATEGORY_LABELS = {
+  general: "Ogolne",
   cpu: "Procesory",
   mobo: "Plyty glowne",
   ram: "Pamiec RAM",
@@ -9,6 +10,13 @@ const CATEGORY_LABELS = {
 };
 
 const FILTER_FIELDS = {
+  general: [
+    {
+      key: "keep_incompatible",
+      label: "Zachowaj niekompatybilne podzespoly",
+      type: "toggle",
+    },
+  ],
   cpu: [
     { key: "family", label: "Rodzina", type: "multi" },
     { key: "generation", label: "Generacja", type: "multi" },
@@ -226,6 +234,32 @@ function FiltersPanel({
     );
   };
 
+  const renderToggleField = (field) => {
+    const current = Boolean(filters?.[activeCategory]?.[field.key]);
+
+    return (
+      <div className="filters-field" key={field.key}>
+        <div className="filters-field-title">{getFieldLabel(field)}</div>
+        <div className="filters-toggle-group">
+          <button
+            type="button"
+            className={`filters-toggle-option ${!current ? "active" : ""}`}
+            onClick={() => onChange(activeCategory, field.key, false)}
+          >
+            NIE
+          </button>
+          <button
+            type="button"
+            className={`filters-toggle-option ${current ? "active" : ""}`}
+            onClick={() => onChange(activeCategory, field.key, true)}
+          >
+            TAK
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -248,12 +282,15 @@ function FiltersPanel({
           </button>
           <div className="filters-scroll">
             <div className="filters-fields">
-              {!filterOptions && <div className="filters-empty">Ladowanie filtrow...</div>}
-              {filterOptions &&
+              {!filterOptions && activeCategory !== "general" && (
+                <div className="filters-empty">Ladowanie filtrow...</div>
+              )}
+              {(filterOptions || activeCategory === "general") &&
                 fields.map((field) => {
                   if (field.type === "range") return renderRangeField(field);
                   if (field.type === "bool") return renderBoolField(field);
                   if (field.type === "bool-multi") return renderBoolMultiField(field);
+                  if (field.type === "toggle") return renderToggleField(field);
                   return renderMultiField(field);
                 })}
             </div>

@@ -342,6 +342,30 @@
   margin-top: 4px;
 }
 
+.filters-toggle-group {
+  display: inline-flex;
+  gap: 8px;
+  background: #1f1f1f;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.filters-toggle-option {
+  background: transparent;
+  border: none;
+  color: #cfcfcf;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.filters-toggle-option.active {
+  background: #3a3a3a;
+  color: #fff;
+}
+
 .filters-range {
   display: flex;
   align-items: center;
@@ -470,6 +494,59 @@
 
 .component-list li:hover {
   background: #3a3a3a;
+}
+
+.component-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.component-item.compat-ok {
+  background: #3a3722;
+}
+
+.component-item.compat-bad {
+  opacity: 0.5;
+}
+
+.component-item.selected {
+  background: #4f5f4f;
+  opacity: 1;
+}
+
+.compat-icon {
+  font-weight: 700;
+  width: 16px;
+  text-align: center;
+  color: #cfcfcf;
+}
+
+.compat-icon.compat-good {
+  color: #6fcb7f;
+}
+
+.compat-icon.compat-ok {
+  color: #e0c46a;
+}
+
+.compat-icon.compat-bad {
+  color: #e07373;
+}
+
+.compat-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+  color: #cfcfcf;
+}
+
+.compat-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* 🔒 Globalnie blokujemy scrollowanie */
