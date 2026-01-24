@@ -445,7 +445,22 @@ const generateGpuRemarks = (gpu, build) => {
   }
 
   if (psu?.wattage) {
-    remarks.tdp = { score: "good", text: `Wybrany zasilacz: ${psu.wattage} W.` };
+    if (gpu?.recommended_system_power_w) {
+      const recommended = toNumber(gpu.recommended_system_power_w);
+      const psuWattage = toNumber(psu.wattage);
+      const score =
+        recommended !== null && psuWattage !== null && psuWattage < recommended
+          ? "bad"
+          : "good";
+      remarks.tdp = {
+        score,
+        text: `Zasilacz: ${psu.wattage} W, GPU rekomenduje: ${
+          recommended ?? gpu.recommended_system_power_w
+        } W.`,
+      };
+    } else {
+      remarks.tdp = { score: "good", text: `Zasilacz: ${psu.wattage} W.` };
+    }
   } else {
     remarks.tdp = { score: null, text: "Zasilacz nie zostal jeszcze wybrany." };
   }
@@ -569,7 +584,7 @@ const generatePsuRemarks = (psu, build) => {
     const psuWattage = toNumber(psu.wattage);
     let score = "good";
     if (recommended !== null && psuWattage !== null && psuWattage < recommended) {
-      score = "ok";
+      score = "bad";
     }
     remarks.wattage = {
       score,

@@ -131,6 +131,9 @@
 .select-right {
   flex: 1;
   padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .component-list li {
@@ -452,6 +455,12 @@
   background: #1f1f1f;
   border-radius: 10px;
   padding: 15px;
+}
+
+.select-right .component-details {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
 }
 
 .component-list-container {

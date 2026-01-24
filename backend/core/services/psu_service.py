@@ -238,8 +238,6 @@ class PSUService:
             if gpu:
                 if gpu.recommended_system_power_w:
                     min_wattage = gpu.recommended_system_power_w
-                elif gpu.tdp:
-                    min_wattage = int(gpu.tdp / PSUService.SAFETY_FACTOR)
         
         elif cpu_pk:
             # If no GPU, estimate based on CPU TDP + a baseline for the rest of the system.
