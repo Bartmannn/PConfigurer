@@ -225,14 +225,18 @@ class BuildBuilderService:
 
     @staticmethod
     def _pick_ram(cpu: CPU, mobo: Motherboard, target_ram_gb: int) -> Optional[RAM]:
+        cpu_types = set(cpu.supported_ram.values_list("type", flat=True).distinct())
+        mobo_types = set(mobo.supported_ram.values_list("type", flat=True).distinct())
+        allowed_types = cpu_types.intersection(mobo_types)
+        if not allowed_types:
+            return None
         qs = RAM.objects.select_related("base").filter(
             price__isnull=False,
             modules_count=2,
             total_capacity__gte=target_ram_gb,
-            base__in=cpu.supported_ram.all(),
+            base__type__in=allowed_types,
             total_capacity__lte=mobo.max_ram_capacity,
         )
-        qs = qs.filter(base__in=mobo.supported_ram.all())
         if cpu.max_internal_memory_gb:
             qs = qs.filter(total_capacity__lte=cpu.max_internal_memory_gb)
 

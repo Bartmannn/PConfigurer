@@ -96,7 +96,6 @@ function ComponentList({ category, selected, filters, onPreview, onSelect, selec
     chassis: { endpoint: "cases/", params: ["mobo", "gpu", "psu"] },
   };
 
-  // Stwórz listę zależności, aby uniknąć niepotrzebnego odświeżania
   const filterSignature = useMemo(() => {
     if (!category || !filters) return "";
     return JSON.stringify(filters[category] || {});
@@ -199,11 +198,11 @@ function ComponentList({ category, selected, filters, onPreview, onSelect, selec
         </span>
         <span className="compat-legend-item">
           <span className="compat-icon compat-ok">-</span>
-          <span>Ograniczaja</span>
+          <span>Ograniczające</span>
         </span>
         <span className="compat-legend-item">
           <span className="compat-icon compat-bad">x</span>
-          <span>Niepasujace</span>
+          <span>Niepasujące</span>
         </span>
       </div>
 

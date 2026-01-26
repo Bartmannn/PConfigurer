@@ -10,9 +10,22 @@ class CPUService:
     
     @staticmethod
     def get_compatible_ram(cpu: CPU, mobo: Motherboard = None):
-        if hasattr(cpu, "supported_ram"):
-            return RAM.objects.filter(base__in=cpu.supported_ram.all())
-        return RAM.objects.none()
+        if not hasattr(cpu, "supported_ram"):
+            return RAM.objects.none()
+
+        cpu_types = set(cpu.supported_ram.values_list("type", flat=True).distinct())
+        if mobo:
+            mobo_types = set(mobo.supported_ram.values_list("type", flat=True).distinct())
+            cpu_types = cpu_types.intersection(mobo_types)
+        if not cpu_types:
+            return RAM.objects.none()
+        qs = RAM.objects.filter(base__type__in=cpu_types)
+        if mobo:
+            qs = qs.filter(
+                modules_count__lte=mobo.dimm_slots,
+                total_capacity__lte=mobo.max_ram_capacity,
+            )
+        return qs
     
     @staticmethod
     def get_compatible_cpus(data: dict[str, int]):
@@ -30,11 +43,9 @@ class CPUService:
             qs = qs.filter(socket=mobo_socket)              # filtrujemy cpu po socket'cie płyty głównej
             
         if ram_pk:
-            ram_base = (
-                RAM.objects.filter(pk=ram_pk)
-                .values_list("base", flat=True)
-                .first()
-            )
-            qs = qs.filter(supported_ram__in=[ram_base])    # cpu może wspierać różne częstotliwości pamięci ram
+            ram = RAM.objects.select_related("base").filter(pk=ram_pk).first()
+            ram_type = ram.base.type if ram and ram.base else None
+            if ram_type:
+                qs = qs.filter(supported_ram__type=ram_type)    # cpu może wspierać różne częstotliwości pamięci ram
             
         return qs.distinct()

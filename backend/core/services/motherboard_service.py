@@ -9,8 +9,11 @@ class MotherboardService:
     
     @staticmethod
     def get_compatible_ram(mobo: Motherboard):
+        supported_types = set(mobo.supported_ram.values_list("type", flat=True).distinct())
+        if not supported_types:
+            return RAM.objects.none()
         return RAM.objects.filter(
-            base__in=mobo.supported_ram.all(),
+            base__type__in=supported_types,
             modules_count__lte=mobo.dimm_slots,
             total_capacity__lte=mobo.max_ram_capacity,
         )
@@ -32,7 +35,7 @@ class MotherboardService:
         if ram_pk:
             ram = RAM.objects.get(pk=ram_pk)
             qs = qs.filter(
-                supported_ram__in=[ram.base],
+                supported_ram__type=ram.base.type,
                 dimm_slots__gte=ram.modules_count,
                 max_ram_capacity__gte=ram.total_capacity,
             )

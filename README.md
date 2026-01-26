@@ -56,18 +56,42 @@ npm run dev
 - GET /admin/ -> panel administratora
 
 ## Struktura projektu
-- `backend/` - backend Django (glowna logika serwera i API)
-- `backend/manage.py` - uruchamianie polecen Django
-- `backend/requirements.txt` - zaleznosci Pythona
-- `backend/backend/` - konfiguracja projektu Django (settings/urls/wsgi)
-- `backend/core/` - aplikacja domenowa (modele, serwisy, widoki, migracje)
-- `backend/core/rules/scoring.json` - opis lokalnych zasad kompatybilnosci (json)
-- `frontend/` - frontend React (Vite)
-- `frontend/src/` - widoki, komponenty i serwisy frontendu
-- `frontend/package.json` - zaleznosci i skrypty frontendu
-- `plans/` - dokumenty planistyczne (np. zasady sortowania/regul)
-- `dane/` - dane pomocnicze do projektu
-- `info_extractor/` - narzedzia do ekstrakcji danych
+```
+PConfigurer/
+|-- backend/                            -- warstwa serwerowa
+|   |-- backend/                        -- konfiguracja projektu Django
+|   |-- core/                           -- logika aplikacji
+|   |   |-- filterset.py                -- definicje filtrow
+|   |   |-- fixtures/                   -- dane testowe
+|   |   |-- migrations/                 -- migracje bazy danych
+|   |   |-- models.py                   -- modele danych
+|   |   |-- serializer.py               -- serializacja modeli
+|   |   |-- services/                   -- uslugi domenowe
+|   |   |-- tools.py                    -- funkcje pomocnicze
+|   |   `-- views.py                    -- widoki API
+|   |-- db.sqlite3                      -- lokalna baza testowa
+|   |-- manage.py                       -- narzedzia zarzadzania
+|   `-- requirements.txt                -- wymagane moduly Pythona
+`-- frontend/                           -- warstwa kliencka
+    |-- public/                         -- pliki statyczne
+    `-- src/                            -- zrodla aplikacji React
+        |-- assets/                     -- zasoby graficzne
+        |-- context/                    -- konteksty aplikacji
+        |   `-- ConfiguratorContext.jsx -- kontekst konfiguratora
+        |-- pages/                      -- widoki stron
+        |   `-- Configurator.jsx        -- strona konfiguratora
+        |-- services/                   -- uslugi API
+        |   |-- BuildEvaluationService.js -- ocena konfiguracji
+        |   `-- remarksService.js       -- uwagi i komentarze
+        `-- vertical-components/        -- komponenty ukladu
+            |-- BuildEvaluation.jsx     -- widok oceny
+            |-- ComponentDetails.jsx    -- szczegoly komponentu
+            |-- ComponentList.jsx       -- lista komponentow
+            |-- ConfiguratorLayout.jsx  -- uklad konfiguratora
+            |-- FiltersPanel.jsx        -- panel filtrow
+            |-- SelectView.jsx          -- widok wyboru
+            `-- SummaryView.jsx         -- widok podsumowania
+```
 
 ## Autor
 Projekt inżynierski - Bartosz Bohdziewicz

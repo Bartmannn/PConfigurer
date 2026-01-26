@@ -27,6 +27,27 @@ const getMobo = (build) => getBuildPart(build, "mobo", "motherboard");
 const getChassis = (build) => getBuildPart(build, "chassis", "case");
 const getStorage = (build) => getBuildPart(build, "mem", "storage");
 
+const isSelectedValue = (value) => {
+  if (!value) return false;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === "object") return Object.keys(value).length > 0;
+  return true;
+};
+
+const hasAnySelectedComponent = (build) => {
+  if (!build) return false;
+  const ram = getRam(build);
+  if (isSelectedValue(ram)) return true;
+  return [
+    getCpu(build),
+    getGpu(build),
+    getMobo(build),
+    getPsu(build),
+    getChassis(build),
+    getStorage(build),
+  ].some(isSelectedValue);
+};
+
 const toNumber = (value) => {
   if (value === null || value === undefined || value === "") return null;
   const parsed = Number(value);
@@ -245,9 +266,34 @@ const buildRamSupportRemarkText = ({ cpuMap, moboMap, cpu, mobo }) => {
 
   if (mobo) {
     const moboText = formatRamSupportMap(moboMap);
-    parts.push(`Plyta max: ${moboText || "brak danych"}`);
+    parts.push(`Płyta max: ${moboText || "brak danych"}`);
   } else {
-    parts.push("Plyta: nie wybrana");
+    parts.push("Płyta: nie wybrana");
+  }
+
+  return parts.join(", ");
+};
+
+const buildRamTypeRemarkText = ({ cpuMap, moboMap, cpu, mobo, ramBase }) => {
+  const parts = [];
+  const cpuTypes = cpuMap ? Array.from(cpuMap.keys()) : [];
+  const moboTypes = moboMap ? Array.from(moboMap.keys()) : [];
+  if (cpu) {
+    parts.push(`CPU: ${cpuTypes.length ? cpuTypes.join(", ") : "brak danych"}`);
+  } else {
+    parts.push("CPU: nie wybrany");
+  }
+
+  if (mobo) {
+    parts.push(`Płyta: ${moboTypes.length ? moboTypes.join(", ") : "brak danych"}`);
+  } else {
+    parts.push("Płyta: nie wybrana");
+  }
+
+  if (ramBase?.type) {
+    parts.push(`RAM: ${ramBase.type}`);
+  } else {
+    parts.push("RAM: nie wybrany");
   }
 
   return parts.join(", ");
@@ -302,9 +348,9 @@ const buildPcieContextText = ({ cpuMax, moboMax, gpuVer, storageVer }) => {
   }
 
   if (moboMax !== null) {
-    parts.push(`Plyta max: PCIe ${moboMax}`);
+    parts.push(`Płyta max: PCIe ${moboMax}`);
   } else {
-    parts.push("Plyta: brak danych PCIe");
+    parts.push("Płyta: brak danych PCIe");
   }
 
   if (gpuVer !== null) {
@@ -323,6 +369,7 @@ const generateCpuRemarks = (cpu, build) => {
   const ram = getRam(build);
   const gpu = getGpu(build);
   const storage = getStorage(build);
+  const buildEmpty = !hasAnySelectedComponent(build);
 
   if (mobo?.socket && cpu.socket) {
     if (cpu.socket === mobo.socket) {
@@ -330,30 +377,51 @@ const generateCpuRemarks = (cpu, build) => {
     } else {
       remarks.socket = { score: "bad", text: "Niezgodne gniazdo procesora!" };
     }
+  } else if (!mobo) {
+    remarks.socket = {
+      score: "good",
+      text: "Płyta główna nie została wybrana.",
+    };
   }
 
   const cpuMap = getRamSupportMap(cpu);
   const moboMap = getRamSupportMap(mobo);
   const ramBase = getRamBase(ram);
   const ramContext = buildRamSupportRemarkText({ cpuMap, moboMap, cpu, mobo });
-  const ramParts = [ramContext];
+  const typeContext = buildRamTypeRemarkText({ cpuMap, moboMap, cpu, mobo, ramBase });
+  const cpuTypes = Array.from(cpuMap.keys());
+  const moboTypes = Array.from(moboMap.keys());
+
+  let typeScore = "good";
+  if (ramBase?.type) {
+    if (!cpuTypes.includes(ramBase.type)) {
+      typeScore = "bad";
+    } else if (mobo && (!moboTypes.length || !moboTypes.includes(ramBase.type))) {
+      typeScore = "bad";
+    }
+  } else if (mobo) {
+    if (!cpuTypes.length || !moboTypes.length || !cpuTypes.some((item) => moboTypes.includes(item))) {
+      typeScore = "bad";
+    }
+  }
+
+  remarks.ram_type = { score: typeScore, text: typeContext };
 
   if (ramBase) {
-    ramParts.push(`Wybrany RAM: ${ramBase.type} ${ramBase.mts}MHz`);
     const cpuMax = getMaxMtsForType(cpuMap, ramBase.type);
     const moboMax = getMaxMtsForType(moboMap, ramBase.type);
-    if ((cpu && cpuMax === null) || (mobo && moboMax === null)) {
-      remarks.ram_support = { score: "bad", text: ramParts.join(", ") };
-    } else if (
-      (cpuMax !== null && ramBase.mts > cpuMax) ||
-      (moboMax !== null && ramBase.mts > moboMax)
-    ) {
-      remarks.ram_support = { score: "ok", text: ramParts.join(", ") };
+    let score = "good";
+    if (cpuMax === null || (mobo && moboMax === null)) {
+      score = "bad";
     } else {
-      remarks.ram_support = { score: "good", text: ramParts.join(", ") };
+      const limit = mobo ? Math.min(cpuMax ?? Infinity, moboMax ?? Infinity) : cpuMax;
+      if (limit !== null && ramBase.mts > limit) {
+        score = "ok";
+      }
     }
+    remarks.ram_frequency = { score, text: `${ramContext}, Wybrany RAM: ${ramBase.mts}MHz` };
   } else {
-    remarks.ram_support = { score: null, text: `${ramContext}, RAM: nie wybrany` };
+    remarks.ram_frequency = { score: "good", text: `${ramContext}, RAM: nie wybrany` };
   }
 
   const cpuMax = getMaxPcieVersionFromCpu(cpu);
@@ -387,16 +455,18 @@ const generateRamRemarks = (ram, build) => {
       if (match) {
         remarks.base = { score: "good", text: "Standard RAM jest kompatybilny." };
       } else {
-        remarks.base = { score: "bad", text: "Standard RAM nie jest wspierany przez plyte." };
+        remarks.base = { score: "bad", text: "Standard RAM nie jest wspierany przez płytę." };
       }
     }
 
     if (ram.total_capacity && mobo.max_ram_capacity && ram.total_capacity > mobo.max_ram_capacity) {
       remarks.total_capacity = {
         score: "bad",
-        text: `Pojemnosc RAM przekracza limit plyty (${mobo.max_ram_capacity}GB).`,
+        text: `Pojemność RAM przekracza limit plyty (${mobo.max_ram_capacity}GB).`,
       };
     }
+  } else {
+    remarks.base = { score: "good", text: "Płyta główna nie została wybrana." };
   }
 
   const cpuMap = getRamSupportMap(cpu);
@@ -434,12 +504,12 @@ const generateGpuRemarks = (gpu, build) => {
     if (gpu.length_mm > chassis.max_gpu_length_mm) {
       remarks.length_mm = {
         score: "bad",
-        text: `Karta jest za dluga do obudowy (max ${chassis.max_gpu_length_mm}mm).`,
+        text: `Karta jest za długa do obudowy (max ${chassis.max_gpu_length_mm}mm).`,
       };
     } else {
       remarks.length_mm = {
         score: "good",
-        text: `Dlugosc GPU: ${gpu.length_mm}mm, limit obudowy: ${chassis.max_gpu_length_mm}mm.`,
+        text: `Długość GPU: ${gpu.length_mm}mm, limit obudowy: ${chassis.max_gpu_length_mm}mm.`,
       };
     }
   }
@@ -462,7 +532,7 @@ const generateGpuRemarks = (gpu, build) => {
       remarks.tdp = { score: "good", text: `Zasilacz: ${psu.wattage} W.` };
     }
   } else {
-    remarks.tdp = { score: null, text: "Zasilacz nie zostal jeszcze wybrany." };
+    remarks.tdp = { score: "good", text: "Zasilacz nie został jeszcze wybrany." };
   }
 
   if (psu) {
@@ -471,7 +541,7 @@ const generateGpuRemarks = (gpu, build) => {
     if (requiredPins === null || availablePins === null) {
       remarks.power_connectors = {
         score: "bad",
-        text: "Brak danych o zlaczach zasilania GPU lub PSU.",
+        text: "Brak danych o złączach zasilania GPU lub PSU.",
       };
     } else if (requiredPins.length === 0) {
       remarks.power_connectors = {
@@ -481,20 +551,20 @@ const generateGpuRemarks = (gpu, build) => {
     } else if (canSatisfyGpuPower(availablePins, requiredPins)) {
       remarks.power_connectors = {
         score: "good",
-        text: `Dostepne zlacza PCIe: ${formatPinList(availablePins)}, wymagane: ${formatPinList(
+        text: `Dostępne złącza PCIe: ${formatPinList(availablePins)}, wymagane: ${formatPinList(
           requiredPins
         )}.`,
       };
     } else {
       remarks.power_connectors = {
         score: "bad",
-        text: `Za malo zlaczy PCIe (dostepne ${formatPinList(availablePins)}, wymagane ${formatPinList(
+        text: `Za mało złączy PCIe (dostępne ${formatPinList(availablePins)}, wymagane ${formatPinList(
           requiredPins
         )}).`,
       };
     }
   } else {
-    remarks.power_connectors = { score: null, text: "Zasilacz nie zostal jeszcze wybrany." };
+    remarks.power_connectors = { score: "good", text: "Zasilacz nie został jeszcze wybrany." };
   }
 
   const cpuMax = getMaxPcieVersionFromCpu(cpu);
@@ -507,7 +577,7 @@ const generateGpuRemarks = (gpu, build) => {
       (gpuVer !== null && moboMax !== null && gpuVer > moboMax);
     remarks.pcie = {
       score: limited ? "ok" : "good",
-      text: limited ? `${text} (GPU ograniczona do nizszej wersji)` : text,
+      text: limited ? `${text} (GPU ograniczona do niższej wersji)` : text,
     };
   }
 
@@ -522,8 +592,14 @@ const generateMotherboardRemarks = (mobo, build) => {
   const gpu = getGpu(build);
   const storage = getStorage(build);
 
-  if (cpu?.socket && mobo.socket && mobo.socket !== cpu.socket) {
-    remarks.socket = { score: "bad", text: "Gniazdo plyty nie pasuje do CPU!" };
+  if (cpu?.socket && mobo.socket) {
+    if (mobo.socket !== cpu.socket) {
+      remarks.socket = { score: "bad", text: "Gniazdo plyty nie pasuje do CPU!" };
+    } else {
+      remarks.socket = { score: "good", text: "Gniazdo plyty jest kompatybilne." };
+    }
+  } else if (!cpu) {
+    remarks.socket = { score: "good", text: "Procesor nie został wybrany." };
   }
 
   if (chassis?.mobo_form_factor_support && mobo.form_factor) {
@@ -539,21 +615,47 @@ const generateMotherboardRemarks = (mobo, build) => {
   const moboMap = getRamSupportMap(mobo);
   const ramBase = getRamBase(ram);
   const context = buildRamSupportRemarkText({ cpuMap, moboMap, cpu, mobo });
+  const typeContext = buildRamTypeRemarkText({ cpuMap, moboMap, cpu, mobo, ramBase });
+  const cpuTypes = Array.from(cpuMap.keys());
+  const moboTypes = Array.from(moboMap.keys());
+
+  let typeScore = "good";
+  if (!moboTypes.length) {
+    typeScore = "bad";
+  } else if (ramBase?.type) {
+    if (!moboTypes.includes(ramBase.type)) {
+      typeScore = "bad";
+    } else if (cpu && (!cpuTypes.length || !cpuTypes.includes(ramBase.type))) {
+      typeScore = "bad";
+    }
+  } else if (cpu) {
+    if (!cpuTypes.length || !cpuTypes.some((item) => moboTypes.includes(item))) {
+      typeScore = "bad";
+    }
+  }
+
+  remarks.ram_type = { score: typeScore, text: typeContext };
+
   if (ramBase) {
     const cpuMax = getMaxMtsForType(cpuMap, ramBase.type);
     const moboMax = getMaxMtsForType(moboMap, ramBase.type);
     let score = "good";
-    if ((cpu && cpuMax === null) || (mobo && moboMax === null)) {
+    if (mobo && moboMax === null) {
       score = "bad";
-    } else if (
-      (cpuMax !== null && ramBase.mts > cpuMax) ||
-      (moboMax !== null && ramBase.mts > moboMax)
-    ) {
-      score = "ok";
+    } else if (cpu && cpuMax === null) {
+      score = "bad";
+    } else {
+      const limit = cpu ? Math.min(cpuMax ?? Infinity, moboMax ?? Infinity) : moboMax;
+      if (limit !== null && ramBase.mts > limit) {
+        score = "ok";
+      }
     }
-    remarks.supported_ram = { score, text: `${context}, Wybrany RAM: ${ramBase.type} ${ramBase.mts}MHz` };
+    remarks.ram_frequency = {
+      score,
+      text: `${context}, Wybrany RAM: ${ramBase.mts}MHz`,
+    };
   } else {
-    remarks.supported_ram = { score: null, text: `${context}, RAM: nie wybrany` };
+    remarks.ram_frequency = { score: "good", text: `${context}, RAM: nie wybrany` };
   }
 
   const cpuMax = getMaxPcieVersionFromCpu(cpu);
@@ -567,7 +669,7 @@ const generateMotherboardRemarks = (mobo, build) => {
       (storageVer !== null && moboMax !== null && storageVer > moboMax);
     remarks.connectors = {
       score: limited ? "ok" : "good",
-      text: limited ? `${text} (ograniczenie przez plyte)` : text,
+      text: limited ? `${text} (ograniczenie przez płytę)` : text,
     };
   }
 
@@ -593,7 +695,7 @@ const generatePsuRemarks = (psu, build) => {
   } else if (gpu) {
     remarks.wattage = { score: null, text: "GPU nie podaje rekomendowanej mocy." };
   } else {
-    remarks.wattage = { score: null, text: "Karta graficzna nie zostala wybrana." };
+    remarks.wattage = { score: "good", text: "Karta graficzna nie została wybrana." };
   }
 
   if (gpu) {
@@ -602,7 +704,7 @@ const generatePsuRemarks = (psu, build) => {
     if (requiredPins === null || availablePins === null) {
       remarks.connectors = {
         score: "bad",
-        text: "Brak danych o zlaczach zasilania GPU lub PSU.",
+        text: "Brak danych o złączach zasilania GPU lub PSU.",
       };
     } else if (requiredPins.length === 0) {
       remarks.connectors = {
@@ -612,20 +714,20 @@ const generatePsuRemarks = (psu, build) => {
     } else if (canSatisfyGpuPower(availablePins, requiredPins)) {
       remarks.connectors = {
         score: "good",
-        text: `Dostepne zlacza PCIe: ${formatPinList(availablePins)}, wymagane: ${formatPinList(
+        text: `Dostępne złącza PCIe: ${formatPinList(availablePins)}, wymagane: ${formatPinList(
           requiredPins
         )}.`,
       };
     } else {
       remarks.connectors = {
         score: "bad",
-        text: `Za malo zlaczy PCIe (dostepne ${formatPinList(availablePins)}, wymagane ${formatPinList(
+        text: `Za mało złączy PCIe (dostępne ${formatPinList(availablePins)}, wymagane ${formatPinList(
           requiredPins
         )}).`,
       };
     }
   } else {
-    remarks.connectors = { score: null, text: "Karta graficzna nie zostala wybrana." };
+    remarks.connectors = { score: "good", text: "Karta graficzna nie została wybrana." };
   }
 
   if (chassis?.psu_form_factor_support && psu.form_factor) {
@@ -637,6 +739,8 @@ const generatePsuRemarks = (psu, build) => {
     } else {
       remarks.form_factor = { score: "good", text: `Format PSU pasuje do obudowy.` };
     }
+  } else if (!chassis) {
+    remarks.form_factor = { score: "good", text: "Obudowa nie została wybrana." };
   }
 
   return remarks;
@@ -655,7 +759,7 @@ const generateMemRemarks = (mem, build) => {
       : [];
     const memConnector = mem.connector?.category || mem.connector?.connector?.category;
     if (memConnector && moboConnectors.length && !moboConnectors.includes(memConnector)) {
-      connectorText = `Plyta glowna nie posiada zlacza ${memConnector}.`;
+      connectorText = `Płyta główna nie posiada złącza ${memConnector}.`;
       connectorScore = "bad";
     }
   }
@@ -668,7 +772,7 @@ const generateMemRemarks = (mem, build) => {
     const limited =
       (storageVer !== null && cpuMax !== null && storageVer > cpuMax) ||
       (storageVer !== null && moboMax !== null && storageVer > moboMax);
-    const pcieText = limited ? `${text} (SSD ograniczony do nizszej wersji)` : text;
+    const pcieText = limited ? `${text} (SSD ograniczony do niższej wersji)` : text;
     if (connectorText) {
       connectorText = `${connectorText} ${pcieText}`;
       connectorScore = connectorScore || (limited ? "ok" : "good");
@@ -695,10 +799,13 @@ const generateChassisRemarks = (chassis, build) => {
     const score = chassis.mobo_form_factor_support?.includes(mobo.form_factor) ? "good" : "bad";
     remarks.mobo_form_factor_support = {
       score,
-      text: `Wybrana plyta: ${mobo.form_factor}.`,
+      text: `Wybrana płyta: ${mobo.form_factor}.`,
     };
   } else {
-    remarks.mobo_form_factor_support = { score: null, text: "Plyta glowna nie zostala wybrana." };
+    remarks.mobo_form_factor_support = {
+      score: "good",
+      text: "Płyta główna nie została wybrana.",
+    };
   }
 
   if (psu?.form_factor) {
@@ -708,7 +815,10 @@ const generateChassisRemarks = (chassis, build) => {
       text: `Wybrany zasilacz: ${psu.form_factor}.`,
     };
   } else {
-    remarks.psu_form_factor_support = { score: null, text: "Zasilacz nie zostal wybrany." };
+    remarks.psu_form_factor_support = {
+      score: "good",
+      text: "Zasilacz nie został wybrany.",
+    };
   }
 
   if (gpu?.length_mm) {
@@ -717,10 +827,13 @@ const generateChassisRemarks = (chassis, build) => {
       chassis.max_gpu_length_mm && gpu.length_mm > chassis.max_gpu_length_mm ? "bad" : "good";
     remarks.max_gpu_length_mm = {
       score,
-      text: `GPU: ${gpu.length_mm}mm, szerokosc: ${width}.`,
+      text: `GPU: ${gpu.length_mm}mm, szerokość: ${width}.`,
     };
   } else {
-    remarks.max_gpu_length_mm = { score: null, text: "Karta graficzna nie zostala wybrana." };
+    remarks.max_gpu_length_mm = {
+      score: "good",
+      text: "Karta graficzna nie została wybrana.",
+    };
   }
 
   return remarks;

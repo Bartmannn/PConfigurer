@@ -33,7 +33,7 @@ const normalizeRamBase = (value) => {
 
 const formatRamFrequency = (base) => {
   if (!base) return "-";
-  return `${base.type} ${base.mts}MHz`;
+  return `${base.mts}MHz`;
 };
 
 const buildRecommendedRam = (supportedRam) => {
@@ -51,6 +51,48 @@ const buildRecommendedRam = (supportedRam) => {
   return Array.from(byType.entries())
     .sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
     .map(([type, mts]) => `${type} ${mts}MHz`);
+};
+
+const buildSupportedRamTypes = (supportedRam, supportedRamTypes) => {
+  if (Array.isArray(supportedRamTypes) && supportedRamTypes.length) {
+    return supportedRamTypes;
+  }
+  if (!Array.isArray(supportedRam)) return [];
+  const types = new Set();
+  supportedRam.forEach((entry) => {
+    if (!entry) return;
+    if (typeof entry === "string") {
+      const match = entry.match(/DDR[345]/i);
+      if (match) types.add(match[0].toUpperCase());
+      return;
+    }
+    const type = entry?.type || entry?.base_type || entry?.kind;
+    if (type) types.add(type.toUpperCase());
+  });
+  return Array.from(types);
+};
+
+const buildSupportedRamSpeeds = (supportedRam) => {
+  if (!Array.isArray(supportedRam)) return [];
+  const speeds = new Set();
+  supportedRam.forEach((entry) => {
+    if (!entry) return;
+    if (typeof entry === "string") {
+      const match = entry.match(/(\d{3,5})\s*mhz/i);
+      if (match) {
+        const value = Number(match[1]);
+        if (Number.isFinite(value)) speeds.add(value);
+      }
+      return;
+    }
+    const mts = entry?.mts ?? entry?.frequency ?? entry?.speed;
+    if (!mts) return;
+    const value = Number(mts);
+    if (Number.isFinite(value)) speeds.add(value);
+  });
+  return Array.from(speeds)
+    .sort((a, b) => a - b)
+    .map((mts) => `${mts}MHz`);
 };
 
 const formatSupportedPcie = (supported) => {
@@ -168,7 +210,8 @@ const buildRows = (category, details) => {
     }
     case "cpu": {
       const isIntel = manufacturer.toLowerCase().includes("intel");
-      const ramRecommendations = buildRecommendedRam(details.supported_ram || details.ram_support_info);
+      const ramTypes = buildSupportedRamTypes(details.supported_ram, details.supported_ram_types);
+      const ramFrequencies = buildRecommendedRam(details.supported_ram || details.ram_support_info);
       const pcieSupport = formatSupportedPcie(details.supported_pcie);
       const coreRows = isIntel
         ? [
@@ -196,9 +239,14 @@ const buildRows = (category, details) => {
           value: details.integrated_gpu,
         },
         {
-          key: "ram_support",
-          label: "Rekomendowany RAM",
-          value: ramRecommendations.length ? ramRecommendations : "-",
+          key: "ram_type",
+          label: "Typ pamięci",
+          value: ramTypes.length ? ramTypes : "-",
+        },
+        {
+          key: "ram_frequency",
+          label: "Częstotliwość",
+          value: ramFrequencies.length ? ramFrequencies : "-",
         },
         {
           key: "max_internal_memory_gb",
@@ -296,7 +344,8 @@ const buildRows = (category, details) => {
       ];
     }
     case "mobo": {
-      const ramRecommendations = buildRecommendedRam(details.supported_ram);
+      const ramTypes = buildSupportedRamTypes(details.supported_ram, details.supported_ram_types);
+      const ramSpeeds = buildSupportedRamSpeeds(details.supported_ram);
       const connectors = Array.isArray(details.connectors)
         ? details.connectors.map((item) => {
             if (!item) return null;
@@ -312,9 +361,14 @@ const buildRows = (category, details) => {
         { key: "socket", label: "Socket", value: details.socket || details.socket_name },
         { key: "form_factor", label: "Format", value: details.form_factor || details.form_factor_name },
         {
-          key: "supported_ram",
-          label: "Wspierana pamięć RAM",
-          value: ramRecommendations.length ? ramRecommendations : "-",
+          key: "ram_type",
+          label: "Typ pamięci",
+          value: ramTypes.length ? ramTypes : "-",
+        },
+        {
+          key: "ram_frequency",
+          label: "Częstotliwość",
+          value: ramSpeeds.length ? ramSpeeds : "-",
         },
         {
           key: "max_ram_capacity",
