@@ -39,6 +39,15 @@
 
 .summary-left {
   flex: 3; /* Takes up 3/4 of the space */
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 6px;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge legacy */
+}
+.summary-left::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .summary-right {
@@ -467,6 +476,12 @@
   position: relative;
   overflow-y: auto;
   max-height: 80vh;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge legacy */
+}
+.component-list-container::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .component-none {
