@@ -198,7 +198,7 @@ function ComponentList({ category, selected, filters, onPreview, onSelect, selec
         </span>
         <span className="compat-legend-item">
           <span className="compat-icon compat-ok">-</span>
-          <span>Ograniczające</span>
+          <span>Ograniczone</span>
         </span>
         <span className="compat-legend-item">
           <span className="compat-icon compat-bad">x</span>

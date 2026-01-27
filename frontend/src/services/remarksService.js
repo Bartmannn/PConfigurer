@@ -241,7 +241,7 @@ const getRamSupportMap = (component) => {
 const formatRamSupportMap = (map) => {
   if (!map || map.size === 0) return null;
   return Array.from(map.entries())
-    .map(([type, mts]) => (mts ? `${type} ${mts}MHz` : `${type}`))
+    .map(([type, mts]) => (mts ? `${type} ${mts} MHz` : `${type}`))
     .join(", ");
 };
 
@@ -419,7 +419,7 @@ const generateCpuRemarks = (cpu, build) => {
         score = "ok";
       }
     }
-    remarks.ram_frequency = { score, text: `${ramContext}, Wybrany RAM: ${ramBase.mts}MHz` };
+    remarks.ram_frequency = { score, text: `${ramContext}, Wybrany RAM: ${ramBase.mts} MHz` };
   } else {
     remarks.ram_frequency = { score: "good", text: `${ramContext}, RAM: nie wybrany` };
   }
@@ -652,7 +652,7 @@ const generateMotherboardRemarks = (mobo, build) => {
     }
     remarks.ram_frequency = {
       score,
-      text: `${context}, Wybrany RAM: ${ramBase.mts}MHz`,
+      text: `${context}, Wybrany RAM: ${ramBase.mts} MHz`,
     };
   } else {
     remarks.ram_frequency = { score: "good", text: `${context}, RAM: nie wybrany` };

@@ -31,6 +31,10 @@ class MotherboardService:
         if cpu_pk:
             cpu = CPU.objects.get(pk=cpu_pk)
             qs = qs.filter(socket=cpu.socket)
+            cpu_types = set(cpu.supported_ram.values_list("type", flat=True).distinct())
+            if not cpu_types:
+                return qs.none()
+            qs = qs.filter(supported_ram__type__in=cpu_types)
             
         if ram_pk:
             ram = RAM.objects.get(pk=ram_pk)

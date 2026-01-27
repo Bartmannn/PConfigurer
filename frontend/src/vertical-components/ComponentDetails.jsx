@@ -33,7 +33,7 @@ const normalizeRamBase = (value) => {
 
 const formatRamFrequency = (base) => {
   if (!base) return "-";
-  return `${base.mts}MHz`;
+  return `${base.mts} MHz`;
 };
 
 const buildRecommendedRam = (supportedRam) => {
@@ -50,7 +50,7 @@ const buildRecommendedRam = (supportedRam) => {
   const order = ["DDR3", "DDR4", "DDR5"];
   return Array.from(byType.entries())
     .sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0]))
-    .map(([type, mts]) => `${type} ${mts}MHz`);
+    .map(([type, mts]) => `${type} ${mts} MHz`);
 };
 
 const buildSupportedRamTypes = (supportedRam, supportedRamTypes) => {
@@ -92,7 +92,7 @@ const buildSupportedRamSpeeds = (supportedRam) => {
   });
   return Array.from(speeds)
     .sort((a, b) => a - b)
-    .map((mts) => `${mts}MHz`);
+    .map((mts) => `${mts} MHz`);
 };
 
 const formatSupportedPcie = (supported) => {
