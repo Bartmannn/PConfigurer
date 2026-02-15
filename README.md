@@ -1,16 +1,24 @@
 # PC Configurator 🖥️
 
-Projekt inzynierski: aplikacja do konfiguracji zestawow komputerowych.  
+Projekt inżynierski: aplikacja do konfiguracji zestawów komputerowych.  
 Backend: **Django** + **Django REST Framework**, frontend: **React** (Vite).
 
 ## Funkcje
-- Modele dla podzespolow komputerowych (CPU, GPU, RAM, plyta glowna, itp.).
-- Zestawy (Builds) oraz REST API do zarzadzania danymi.
+- Modele dla podzespołów komputerowych (CPU, GPU, RAM, płyta główna, itp.).
+- Zestawy (Builds) oraz REST API do zarządzania danymi.
 - Panel admina do wprowadzania danych.
-- Widok szczegolow z lokalnymi uwagami kompatybilnosci.
-- Listy podzespolow sortowane po kompatybilnosci i cenie.
+- Widok szczegółów z lokalnymi uwagami kompatybilności.
+- Listy podzespołów sortowane po kompatybilności i cenie.
 
 ---
+
+## Demo
+
+![CPU](./resource/cpu.gif)
+![MOBO](./resource/mobo.gif)
+![GPU](./resource/gpu.gif)
+![Excluded](./resource/excluded.gif)
+![Building](./resource/building.gif)
 
 ## Technologie
 - Python 3.10+
@@ -23,13 +31,28 @@ Backend: **Django** + **Django REST Framework**, frontend: **React** (Vite).
 
 ## Instalacja i uruchomienie
 
-### 1. Klonowanie repozytorium
+### Klonowanie repozytorium
 ```bash
 git clone https://github.com/Bartmannn/PConfigurer.git
 cd PConfigurer
 ```
 
-### 2. Backend (Django)
+### Docker
+
+```bash
+docker compose build
+docker compose up
+```
+
+Dla starszej wersji Dockera należy użyć poleceń:
+```bash
+docker-compose build
+docker-compose up
+```
+
+### Lokalnie
+
+#### 1. Backend (Django)
 ```bash
 cd backend
 python -m venv venv
@@ -41,7 +64,7 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-### 3. Frontend (React + Vite)
+#### 2. Frontend (React + Vite)
 ```bash
 cd frontend
 npm install
@@ -49,9 +72,9 @@ npm run dev
 ```
 
 ## API (przykłady)
-- GET /api/cpus/ -> lista procesorow
+- GET /api/cpus/ -> lista procesorów
 - GET /api/gpus/ -> lista kart graficznych
-- GET /api/filters/options/ -> dane do filtrow
+- GET /api/filters/options/ -> dane do filtrów
 - POST /api/builds/ -> utworzenie nowego zestawu
 - GET /admin/ -> panel administratora
 
@@ -61,34 +84,34 @@ PConfigurer/
 |-- backend/                            -- warstwa serwerowa
 |   |-- backend/                        -- konfiguracja projektu Django
 |   |-- core/                           -- logika aplikacji
-|   |   |-- filterset.py                -- definicje filtrow
+|   |   |-- filterset.py                -- definicje filtrów
 |   |   |-- fixtures/                   -- dane testowe
 |   |   |-- migrations/                 -- migracje bazy danych
 |   |   |-- models.py                   -- modele danych
 |   |   |-- serializer.py               -- serializacja modeli
-|   |   |-- services/                   -- uslugi domenowe
+|   |   |-- services/                   -- usługi domenowe
 |   |   |-- tools.py                    -- funkcje pomocnicze
 |   |   `-- views.py                    -- widoki API
 |   |-- db.sqlite3                      -- lokalna baza testowa
-|   |-- manage.py                       -- narzedzia zarzadzania
-|   `-- requirements.txt                -- wymagane moduly Pythona
+|   |-- manage.py                       -- narzędzia zarządzania
+|   `-- requirements.txt                -- wymagane moduły Pythona
 `-- frontend/                           -- warstwa kliencka
     |-- public/                         -- pliki statyczne
-    `-- src/                            -- zrodla aplikacji React
+    `-- src/                            -- źródła aplikacji React
         |-- assets/                     -- zasoby graficzne
         |-- context/                    -- konteksty aplikacji
         |   `-- ConfiguratorContext.jsx -- kontekst konfiguratora
         |-- pages/                      -- widoki stron
         |   `-- Configurator.jsx        -- strona konfiguratora
-        |-- services/                   -- uslugi API
+        |-- services/                   -- usługi API
         |   |-- BuildEvaluationService.js -- ocena konfiguracji
         |   `-- remarksService.js       -- uwagi i komentarze
-        `-- vertical-components/        -- komponenty ukladu
+        `-- vertical-components/        -- komponenty układu
             |-- BuildEvaluation.jsx     -- widok oceny
-            |-- ComponentDetails.jsx    -- szczegoly komponentu
-            |-- ComponentList.jsx       -- lista komponentow
-            |-- ConfiguratorLayout.jsx  -- uklad konfiguratora
-            |-- FiltersPanel.jsx        -- panel filtrow
+            |-- ComponentDetails.jsx    -- szczegóły komponentu
+            |-- ComponentList.jsx       -- lista komponentów
+            |-- ConfiguratorLayout.jsx  -- układ konfiguratora
+            |-- FiltersPanel.jsx        -- panel filtrów
             |-- SelectView.jsx          -- widok wyboru
             `-- SummaryView.jsx         -- widok podsumowania
 ```
